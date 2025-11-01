@@ -342,23 +342,18 @@ class ApiService {
           // Filter posts that are within display date range and have remaining views
           final now = DateTime.now();
           return data.cast<Map<String, dynamic>>().where((post) {
-            final startDate = post['displayStartDate'] != null 
-                ? DateTime.tryParse(post['displayStartDate']) 
+            // Check expiration date
+            final expiresAt = post['expires_at'] != null 
+                ? DateTime.tryParse(post['expires_at']) 
                 : null;
-            final endDate = post['displayEndDate'] != null 
-                ? DateTime.tryParse(post['displayEndDate']) 
-                : null;
-            final maxViews = post['maxViews'] ?? 999999;
-            final currentViews = post['views'] ?? 0;
+            final isNotExpired = expiresAt == null || now.isBefore(expiresAt);
             
-            // Check if post is within display date range
-            final isWithinDateRange = (startDate == null || now.isAfter(startDate)) &&
-                                    (endDate == null || now.isBefore(endDate));
+            // Check view limit
+            final viewLimit = post['view_limit'] ?? 999999;
+            final currentViews = post['views_count'] ?? 0;
+            final hasRemainingViews = currentViews < viewLimit;
             
-            // Check if post hasn't exceeded max views
-            final hasRemainingViews = currentViews < maxViews;
-            
-            return isWithinDateRange && hasRemainingViews;
+            return isNotExpired && hasRemainingViews;
           }).toList();
         }
       } catch (e) {

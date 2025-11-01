@@ -384,16 +384,27 @@ class _FeedsPageState extends State<FeedsPage> {
                                       Container(
                                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                         decoration: BoxDecoration(
-                                          color: Colors.blue.withOpacity(0.1),
+                                          color: const Color(0xFFDC143C).withOpacity(0.1),
                                           borderRadius: BorderRadius.circular(12),
                                         ),
-                                        child: Text(
-                                          post['assignedLabel'],
-                                          style: const TextStyle(
-                                            color: Colors.blue,
-                                            fontSize: 12,
-                                            fontWeight: FontWeight.w500,
-                                          ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Icon(
+                                              Icons.verified,
+                                              size: 14,
+                                              color: const Color(0xFFDC143C),
+                                            ),
+                                            const SizedBox(width: 4),
+                                            Text(
+                                              post['assignedLabel'],
+                                              style: const TextStyle(
+                                                color: Color(0xFFDC143C),
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                            ),
+                                          ],
                                         ),
                                       ),
                                     if (post['adminRemarks'] != null)
