@@ -92,23 +92,11 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
 
     setState(() => _sending = true);
     
-    try {
-      final success = await ApiService.sendOtp(phone);
-      if (success) {
-        await AuthService.saveLastPhone(phone);
-        Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => OTPPage(phone: phone)),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to send OTP. Please try again.')),
-        );
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Network error. Please check your connection.')),
-      );
-    }
+    // Accept any mobile number for now
+    await AuthService.saveLastPhone(phone);
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => OTPPage(phone: phone)),
+    );
     
     setState(() => _sending = false);
   }

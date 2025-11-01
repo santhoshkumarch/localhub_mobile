@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../pages/profile_page.dart';
+import '../pages/login_page.dart';
+import '../services/auth_service.dart';
 
 class SideMenu extends StatelessWidget {
   const SideMenu({super.key});
@@ -49,7 +51,10 @@ class SideMenu extends StatelessWidget {
           ListTile(
             leading: const Icon(Icons.home),
             title: const Text('Home'),
-            onTap: () => Navigator.pop(context),
+            onTap: () {
+              Navigator.pop(context); // Close drawer
+              Navigator.popUntil(context, (route) => route.isFirst); // Go back to MainTabs
+            },
           ),
           ListTile(
             leading: const Icon(Icons.person),
@@ -76,7 +81,14 @@ class SideMenu extends StatelessWidget {
           ListTile(
             leading: const Icon(Icons.logout),
             title: const Text('Logout'),
-            onTap: () => Navigator.pop(context),
+            onTap: () async {
+              await AuthService.logout();
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(builder: (_) => const LoginPage()),
+                (route) => false,
+              );
+            },
           ),
         ],
       ),

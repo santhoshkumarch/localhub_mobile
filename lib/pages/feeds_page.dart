@@ -361,7 +361,9 @@ class _FeedsPageState extends State<FeedsPage> {
                                     ),
                                   ),
                                 const SizedBox(height: 12),
-                                Row(
+                                Wrap(
+                                  spacing: 8,
+                                  runSpacing: 4,
                                   children: [
                                     Container(
                                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -378,8 +380,7 @@ class _FeedsPageState extends State<FeedsPage> {
                                         ),
                                       ),
                                     ),
-                                    if (post['assignedLabel'] != null) ...[
-                                      const SizedBox(width: 8),
+                                    if (post['assignedLabel'] != null)
                                       Container(
                                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                         decoration: BoxDecoration(
@@ -395,7 +396,22 @@ class _FeedsPageState extends State<FeedsPage> {
                                           ),
                                         ),
                                       ),
-                                    ]
+                                    if (post['adminRemarks'] != null)
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                        decoration: BoxDecoration(
+                                          color: Colors.orange.withOpacity(0.1),
+                                          borderRadius: BorderRadius.circular(12),
+                                        ),
+                                        child: Text(
+                                          post['adminRemarks'],
+                                          style: const TextStyle(
+                                            color: Colors.orange,
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                      ),
                                   ],
                                 ),
                                 const SizedBox(height: 12),

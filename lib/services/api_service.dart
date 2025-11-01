@@ -17,7 +17,7 @@ class ApiService {
           Uri.parse('$baseUrl/auth/check-user'),
           headers: {'Content-Type': 'application/json'},
           body: json.encode({'phone': phoneNumber}),
-        );
+        ).timeout(const Duration(seconds: 5));
         if (response.statusCode == 200) {
           return json.decode(response.body);
         }
@@ -31,13 +31,17 @@ class ApiService {
   static Future<bool> registerUser(String phoneNumber, String name) async {
     for (String baseUrl in [localUrl, androidUrl, productionUrl]) {
       try {
+        print('Registering user: $phoneNumber to $baseUrl/auth/register');
         final response = await http.post(
           Uri.parse('$baseUrl/auth/register'),
           headers: {'Content-Type': 'application/json'},
-          body: json.encode({'phone': phoneNumber, 'name': name}),
-        );
-        if (response.statusCode == 200) return true;
+          body: json.encode({'phone': phoneNumber}),
+        ).timeout(const Duration(seconds: 5));
+        print('Register response: ${response.statusCode} - ${response.body}');
+        if (response.statusCode == 200 || response.statusCode == 201)
+          return true;
       } catch (e) {
+        print('Register error: $e');
         continue;
       }
     }
@@ -105,7 +109,9 @@ class ApiService {
     for (String baseUrl in [localUrl, androidUrl, productionUrl]) {
       try {
         print('Making API call to: $baseUrl/menus');
-        final response = await http.get(Uri.parse('$baseUrl/menus'));
+        final response = await http.get(Uri.parse('$baseUrl/menus')).timeout(
+          const Duration(seconds: 5),
+        );
         print('API Response Status: ${response.statusCode}');
         print('API Response Body: ${response.body}');
 
@@ -119,14 +125,92 @@ class ApiService {
       }
     }
 
-    print('All API endpoints failed');
-    return [];
+    print('All API endpoints failed, returning default menus');
+    return _getDefaultMenus();
+  }
+
+  static List<MenuItem> _getDefaultMenus() {
+    return [
+      MenuItem(
+        id: 1,
+        name: 'Restaurants',
+        description: 'Food & Dining',
+        icon: '🍽️',
+        labels: ['food', 'dining'],
+        postCount: 0,
+        isActive: true,
+      ),
+      MenuItem(
+        id: 2,
+        name: 'Shopping',
+        description: 'Retail & Shopping',
+        icon: '🛍️',
+        labels: ['retail', 'shopping'],
+        postCount: 0,
+        isActive: true,
+      ),
+      MenuItem(
+        id: 3,
+        name: 'Services',
+        description: 'Professional Services',
+        icon: '🔧',
+        labels: ['services', 'professional'],
+        postCount: 0,
+        isActive: true,
+      ),
+      MenuItem(
+        id: 4,
+        name: 'Healthcare',
+        description: 'Medical & Health',
+        icon: '🏥',
+        labels: ['health', 'medical'],
+        postCount: 0,
+        isActive: true,
+      ),
+      MenuItem(
+        id: 5,
+        name: 'Education',
+        description: 'Schools & Training',
+        icon: '📚',
+        labels: ['education', 'training'],
+        postCount: 0,
+        isActive: true,
+      ),
+      MenuItem(
+        id: 6,
+        name: 'Entertainment',
+        description: 'Fun & Events',
+        icon: '🎭',
+        labels: ['entertainment', 'events'],
+        postCount: 0,
+        isActive: true,
+      ),
+      MenuItem(
+        id: 7,
+        name: 'Real Estate',
+        description: 'Property & Housing',
+        icon: '🏠',
+        labels: ['property', 'housing'],
+        postCount: 0,
+        isActive: true,
+      ),
+      MenuItem(
+        id: 8,
+        name: 'Automotive',
+        description: 'Cars & Vehicles',
+        icon: '🚗',
+        labels: ['automotive', 'vehicles'],
+        postCount: 0,
+        isActive: true,
+      ),
+    ];
   }
 
   static Future<Map<String, dynamic>?> getProfile(String phoneNumber) async {
     for (String baseUrl in [localUrl, androidUrl, productionUrl]) {
       try {
-        final response = await http.get(Uri.parse('$baseUrl/profile/$phoneNumber'));
+        final response =
+            await http.get(Uri.parse('$baseUrl/profile/$phoneNumber'));
         if (response.statusCode == 200) {
           return json.decode(response.body);
         }
@@ -137,23 +221,39 @@ class ApiService {
     return null;
   }
 
-  static Future<bool> updateProfile(String phoneNumber, Map<String, dynamic> profileData) async {
+  static Future<bool> updateProfile(
+      String phoneNumber, Map<String, dynamic> profileData) async {
     for (String baseUrl in [localUrl, androidUrl, productionUrl]) {
       try {
         print('Updating profile for: $phoneNumber');
         print('Profile data: $profileData');
-        print('API URL: $baseUrl/profile/$phoneNumber');
         
-        final response = await http.put(
-          Uri.parse('$baseUrl/profile/$phoneNumber'),
+        // Add phone number to profile data
+        final dataWithPhone = {
+          ...profileData,
+          'phone': phoneNumber,
+        };
+        
+        // Try POST first (for creating new profile)
+        var response = await http.post(
+          Uri.parse('$baseUrl/profile'),
           headers: {'Content-Type': 'application/json'},
-          body: json.encode(profileData),
+          body: json.encode(dataWithPhone),
         );
         
-        print('Update profile response status: ${response.statusCode}');
-        print('Update profile response body: ${response.body}');
-        
-        if (response.statusCode == 200) return true;
+        // If POST fails, try PUT (for updating existing profile)
+        if (response.statusCode != 200 && response.statusCode != 201) {
+          response = await http.put(
+            Uri.parse('$baseUrl/profile/$phoneNumber'),
+            headers: {'Content-Type': 'application/json'},
+            body: json.encode(profileData),
+          );
+        }
+
+        print('Profile response status: ${response.statusCode}');
+        print('Profile response body: ${response.body}');
+
+        if (response.statusCode == 200 || response.statusCode == 201) return true;
       } catch (e) {
         print('Profile update error: $e');
         continue;
@@ -202,7 +302,8 @@ class ApiService {
           headers: {'Content-Type': 'application/json'},
           body: json.encode(postData),
         );
-        print('Create post response: ${response.statusCode} - ${response.body}');
+        print(
+            'Create post response: ${response.statusCode} - ${response.body}');
         if (response.statusCode == 201) return true;
       } catch (e) {
         print('Create post error: $e');
@@ -212,11 +313,13 @@ class ApiService {
     return false;
   }
 
-  static Future<List<Map<String, dynamic>>> getUserPosts(String phoneNumber) async {
+  static Future<List<Map<String, dynamic>>> getUserPosts(
+      String phoneNumber) async {
     for (String baseUrl in [localUrl, androidUrl, productionUrl]) {
       try {
         print('Getting user posts for: $phoneNumber from $baseUrl');
-        final response = await http.get(Uri.parse('$baseUrl/posts/user/$phoneNumber'));
+        final response =
+            await http.get(Uri.parse('$baseUrl/posts/user/$phoneNumber'));
         print('User posts response: ${response.statusCode} - ${response.body}');
         if (response.statusCode == 200) {
           final List<dynamic> data = json.decode(response.body);
@@ -236,7 +339,27 @@ class ApiService {
         final response = await http.get(Uri.parse('$baseUrl/posts'));
         if (response.statusCode == 200) {
           final List<dynamic> data = json.decode(response.body);
-          return data.cast<Map<String, dynamic>>();
+          // Filter posts that are within display date range and have remaining views
+          final now = DateTime.now();
+          return data.cast<Map<String, dynamic>>().where((post) {
+            final startDate = post['displayStartDate'] != null 
+                ? DateTime.tryParse(post['displayStartDate']) 
+                : null;
+            final endDate = post['displayEndDate'] != null 
+                ? DateTime.tryParse(post['displayEndDate']) 
+                : null;
+            final maxViews = post['maxViews'] ?? 999999;
+            final currentViews = post['views'] ?? 0;
+            
+            // Check if post is within display date range
+            final isWithinDateRange = (startDate == null || now.isAfter(startDate)) &&
+                                    (endDate == null || now.isBefore(endDate));
+            
+            // Check if post hasn't exceeded max views
+            final hasRemainingViews = currentViews < maxViews;
+            
+            return isWithinDateRange && hasRemainingViews;
+          }).toList();
         }
       } catch (e) {
         continue;
@@ -248,7 +371,8 @@ class ApiService {
   static Future<String?> getUserType(String phoneNumber) async {
     for (String baseUrl in [localUrl, androidUrl, productionUrl]) {
       try {
-        final response = await http.get(Uri.parse('$baseUrl/profile/$phoneNumber'));
+        final response =
+            await http.get(Uri.parse('$baseUrl/profile/$phoneNumber'));
         if (response.statusCode == 200) {
           final data = json.decode(response.body);
           return data['profile_type'] ?? 'individual';
@@ -276,7 +400,8 @@ class ApiService {
     return false;
   }
 
-  static Future<bool> addComment(int postId, String phoneNumber, String comment) async {
+  static Future<bool> addComment(
+      int postId, String phoneNumber, String comment) async {
     for (String baseUrl in [localUrl, androidUrl, productionUrl]) {
       try {
         final response = await http.post(
@@ -298,7 +423,8 @@ class ApiService {
   static Future<List<Map<String, dynamic>>> getComments(int postId) async {
     for (String baseUrl in [localUrl, androidUrl, productionUrl]) {
       try {
-        final response = await http.get(Uri.parse('$baseUrl/posts/$postId/comments'));
+        final response =
+            await http.get(Uri.parse('$baseUrl/posts/$postId/comments'));
         if (response.statusCode == 200) {
           final List<dynamic> data = json.decode(response.body);
           return data.cast<Map<String, dynamic>>();
@@ -313,7 +439,8 @@ class ApiService {
   static Future<bool> runEngagementMigration() async {
     for (String baseUrl in [localUrl, androidUrl, productionUrl]) {
       try {
-        final response = await http.post(Uri.parse('$baseUrl/migration/engagement'));
+        final response =
+            await http.post(Uri.parse('$baseUrl/migration/engagement'));
         if (response.statusCode == 200) {
           print('Migration successful: ${response.body}');
           return true;
@@ -328,7 +455,8 @@ class ApiService {
   static Future<List<int>> getUserLikedPosts(String phoneNumber) async {
     for (String baseUrl in [localUrl, androidUrl, productionUrl]) {
       try {
-        final response = await http.get(Uri.parse('$baseUrl/posts/liked/$phoneNumber'));
+        final response =
+            await http.get(Uri.parse('$baseUrl/posts/liked/$phoneNumber'));
         if (response.statusCode == 200) {
           final List<dynamic> data = json.decode(response.body);
           return data.cast<int>();
@@ -338,6 +466,33 @@ class ApiService {
       }
     }
     return [];
+  }
+
+  static Future<bool> deleteUser(String phoneNumber) async {
+    for (String baseUrl in [localUrl, androidUrl, productionUrl]) {
+      try {
+        // First delete user's posts
+        await http.delete(
+          Uri.parse('$baseUrl/posts/user/$phoneNumber'),
+          headers: {'Content-Type': 'application/json'},
+        ).timeout(const Duration(seconds: 5));
+        
+        // Then delete the user
+        final response = await http.delete(
+          Uri.parse('$baseUrl/users/$phoneNumber'),
+          headers: {'Content-Type': 'application/json'},
+        ).timeout(const Duration(seconds: 5));
+        
+        if (response.statusCode == 200) {
+          print('User $phoneNumber deleted successfully');
+          return true;
+        }
+      } catch (e) {
+        print('Failed to delete user from $baseUrl: $e');
+        continue;
+      }
+    }
+    return false;
   }
 }
 

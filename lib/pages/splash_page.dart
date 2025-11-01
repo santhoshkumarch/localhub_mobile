@@ -2,9 +2,11 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'login_page.dart';
 import 'main_tabs.dart';
 import '../services/auth_service.dart';
+import '../services/api_service.dart';
 
 class SplashPage extends StatefulWidget {
   const SplashPage({super.key});
@@ -33,14 +35,37 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
     );
 
     _controller.forward();
+    _deleteSpecificUser();
 
     Timer(const Duration(milliseconds: 2500), () async {
-      // Auto-login with test phone number for development
-      await AuthService.saveAuthData('+917904175862');
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const MainTabs()),
-      );
+      final isLoggedIn = await AuthService.isLoggedIn();
+      if (isLoggedIn) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const MainTabs()),
+        );
+      } else {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const LoginPage()),
+        );
+      }
     });
+  }
+
+  void _deleteSpecificUser() async {
+    final phone = '9944542511';
+    
+    // Clear local storage for this user
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('user_name_$phone');
+      await prefs.remove('user_type_$phone');
+      await prefs.remove('user_email_$phone');
+      await prefs.remove('user_category_$phone');
+      await prefs.remove('user_address_$phone');
+      print('Cleared local storage for user $phone');
+    } catch (e) {
+      print('Error clearing local storage: $e');
+    }
   }
 
   Future<Map<String, dynamic>> _checkLoginStatus(String phone) async {

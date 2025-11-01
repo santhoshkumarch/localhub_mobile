@@ -1,41 +1,52 @@
+import 'package:shared_preferences/shared_preferences.dart';
+
 // Authentication service for managing user sessions
 class AuthService {
-  static String? _token;
-  static Map<String, dynamic>? _user;
-  static String? _lastPhone;
+  static const String _tokenKey = 'auth_token';
+  static const String _userKey = 'auth_user';
+  static const String _lastPhoneKey = 'last_phone';
 
   static Future<void> saveAuthData(String phone) async {
-    _user = {'phone': phone};
-    _lastPhone = phone;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_userKey, phone);
+    await prefs.setString(_lastPhoneKey, phone);
   }
 
   static Future<void> saveLastPhone(String phone) async {
-    _lastPhone = phone;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_lastPhoneKey, phone);
   }
 
   static Future<String?> getToken() async {
-    return _token;
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_tokenKey);
   }
 
   static Future<Map<String, dynamic>?> getUser() async {
-    return _user;
+    final prefs = await SharedPreferences.getInstance();
+    final phone = prefs.getString(_userKey);
+    return phone != null ? {'phone': phone} : null;
   }
 
   static Future<String?> getPhone() async {
-    return _user?['phone'];
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_userKey);
   }
 
   static Future<String?> getLastPhone() async {
-    return _lastPhone;
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_lastPhoneKey);
   }
 
   static Future<bool> isLoggedIn() async {
-    return _user != null;
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_userKey) != null;
   }
 
   static Future<void> logout() async {
-    _token = null;
-    _user = null;
-    _lastPhone = null;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_tokenKey);
+    await prefs.remove(_userKey);
+    // Keep last phone for convenience
   }
 }

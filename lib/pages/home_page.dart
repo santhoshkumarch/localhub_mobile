@@ -50,14 +50,13 @@ class _HomePageState extends State<HomePage> {
       });
 
       debugPrint('Starting to load menus...');
-      final fetchedMenus = await ApiService.getMenus();
+      final fetchedMenus = await ApiService.getMenus().timeout(
+        const Duration(seconds: 8),
+      );
 
       if (!mounted) return;
 
       debugPrint('API Response: Fetched ${fetchedMenus.length} menus');
-      for (int i = 0; i < fetchedMenus.length; i++) {
-        debugPrint('Menu $i: ${fetchedMenus[i].name} - ${fetchedMenus[i].icon}');
-      }
       
       setState(() {
         menus = fetchedMenus;
@@ -65,7 +64,6 @@ class _HomePageState extends State<HomePage> {
       });
     } catch (e, stackTrace) {
       debugPrint('API Error: $e');
-      debugPrint('Stack trace: $stackTrace');
 
       if (!mounted) return;
 
