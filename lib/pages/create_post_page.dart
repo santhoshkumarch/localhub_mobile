@@ -5,6 +5,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../services/api_service.dart';
 import '../services/auth_service.dart';
 
+
+
 class CreatePostPage extends StatefulWidget {
   const CreatePostPage({super.key});
 
@@ -35,6 +37,9 @@ class _CreatePostPageState extends State<CreatePostPage> {
 
   void _checkFirstTimeUser() async {
     final phoneNumber = await AuthService.getPhone();
+    final email = await AuthService.getEmail();
+    final userName = await AuthService.getName();
+    
     if (phoneNumber != null) {
       final profile = await ApiService.getProfile(phoneNumber);
       
@@ -53,6 +58,21 @@ class _CreatePostPageState extends State<CreatePostPage> {
       } else {
         _loadUserType();
       }
+    } else if (email != null) {
+      // Email user - check if they have completed profile
+      final prefs = await SharedPreferences.getInstance();
+      final profileCompleted = prefs.getBool('profile_completed_$email') ?? false;
+      
+      if (!profileCompleted) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _showFirstTimeProfileModal();
+        });
+      } else {
+        setState(() {
+          _userName = userName ?? 'User';
+          _userType = 'individual';
+        });
+      }
     }
   }
 
@@ -67,6 +87,9 @@ class _CreatePostPageState extends State<CreatePostPage> {
 
   void _loadUserType() async {
     final phoneNumber = await AuthService.getPhone();
+    final email = await AuthService.getEmail();
+    final userName = await AuthService.getName();
+    
     if (phoneNumber != null) {
       // Try to get from API first
       final userType = await ApiService.getUserType(phoneNumber);
@@ -88,6 +111,14 @@ class _CreatePostPageState extends State<CreatePostPage> {
           _userName = profile['name'] ?? 'User';
         });
       }
+    } else if (email != null) {
+      final prefs = await SharedPreferences.getInstance();
+      final profileType = prefs.getString('user_profile_type') ?? 'individual';
+      
+      setState(() {
+        _userType = profileType;
+        _userName = userName ?? 'User';
+      });
     }
   }
 
@@ -164,6 +195,23 @@ class _CreatePostPageState extends State<CreatePostPage> {
     );
   }
 
+
+
+  void _showFirstTimeProfileModal() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      isDismissible: false,
+      enableDrag: false,
+      backgroundColor: Colors.transparent,
+      builder: (context) => FirstTimeProfileModal(
+        onProfileComplete: () {
+          _loadUserType();
+        },
+      ),
+    );
+  }
+
   void _createPost() async {
     if (_contentController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -175,7 +223,9 @@ class _CreatePostPageState extends State<CreatePostPage> {
     setState(() => _creating = true);
 
     final phoneNumber = await AuthService.getPhone();
-    if (phoneNumber == null) {
+    final email = await AuthService.getEmail();
+    
+    if (phoneNumber == null && email == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('User not found')),
       );
@@ -189,6 +239,7 @@ class _CreatePostPageState extends State<CreatePostPage> {
       'menuId': _selectedMenu?.id ?? 1,
       'assignedLabel': _selectedLabel,
       'phoneNumber': phoneNumber,
+      'email': email,
       'mediaUrls': [],
       'status': 'pending', // Post starts as pending admin approval
     };
@@ -548,20 +599,7 @@ class _CreatePostPageState extends State<CreatePostPage> {
 
 
 
-  void _showFirstTimeProfileModal() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      isDismissible: false,
-      enableDrag: false,
-      backgroundColor: Colors.transparent,
-      builder: (context) => FirstTimeProfileModal(
-        onProfileComplete: () {
-          _loadUserType();
-        },
-      ),
-    );
-  }
+
 
   @override
   void dispose() {
@@ -579,7 +617,7 @@ class FirstTimeProfileModal extends StatefulWidget {
   State<FirstTimeProfileModal> createState() => _FirstTimeProfileModalState();
 }
 
-class _FirstTimeProfileModalState extends State<FirstTimeProfileModal> {
+class _FirstTimeProfileModalState extends State<FirstTimeProfileModal> with TickerProviderStateMixin {
   final _nameController = TextEditingController();
   final _usernameController = TextEditingController();
   final _emailController = TextEditingController();
@@ -590,11 +628,43 @@ class _FirstTimeProfileModalState extends State<FirstTimeProfileModal> {
   bool _saving = false;
   List<String> _categories = [];
   String? _selectedCategory;
+  
+  late AnimationController _slideController;
+  late AnimationController _fadeController;
+  late Animation<Offset> _slideAnimation;
+  late Animation<double> _fadeAnimation;
 
   @override
   void initState() {
     super.initState();
+    _slideController = AnimationController(
+      duration: const Duration(milliseconds: 800),
+      vsync: this,
+    );
+    _fadeController = AnimationController(
+      duration: const Duration(milliseconds: 600),
+      vsync: this,
+    );
+    
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(0, 1),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(
+      parent: _slideController,
+      curve: Curves.elasticOut,
+    ));
+    
+    _fadeAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _fadeController,
+      curve: Curves.easeInOut,
+    ));
+    
     _loadCategories();
+    _slideController.forward();
+    _fadeController.forward();
   }
 
   void _loadCategories() async {
@@ -613,21 +683,23 @@ class _FirstTimeProfileModalState extends State<FirstTimeProfileModal> {
     setState(() => _saving = true);
 
     final phoneNumber = await AuthService.getPhone();
+    final email = await AuthService.getEmail();
+    
     if (phoneNumber != null) {
       final profileData = {
         'name': _nameController.text.trim(),
         'email': _emailController.text.trim(),
-        'profileType': _profileType,
-        'businessName': _profileType == 'business' ? _nameController.text.trim() : '',
-        'businessCategory': _selectedCategory ?? _businessCategoryController.text.trim(),
+        'profile_type': _profileType,
+        'user_type': _profileType,
+        'business_name': _profileType == 'business' ? _nameController.text.trim() : '',
+        'business_category': _selectedCategory ?? _businessCategoryController.text.trim(),
         'address': _businessLocationController.text.trim(),
       };
 
       final success = await ApiService.updateProfile(phoneNumber, profileData);
       
-      setState(() => _saving = false);
-      
       if (success) {
+        setState(() => _saving = false);
         Navigator.pop(context);
         widget.onProfileComplete();
       } else {
@@ -635,66 +707,235 @@ class _FirstTimeProfileModalState extends State<FirstTimeProfileModal> {
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('user_name_$phoneNumber', _nameController.text.trim());
         await prefs.setString('user_type_$phoneNumber', _profileType);
-        await prefs.setString('user_email_$phoneNumber', _emailController.text.trim());
-        await prefs.setString('user_category_$phoneNumber', _selectedCategory ?? _businessCategoryController.text.trim());
-        await prefs.setString('user_address_$phoneNumber', _businessLocationController.text.trim());
         
+        setState(() => _saving = false);
         Navigator.pop(context);
         widget.onProfileComplete();
       }
+    } else if (email != null) {
+      // For email users, save to database
+      final profileData = {
+        'name': _nameController.text.trim(),
+        'profile_type': _profileType,
+        'user_type': _profileType,
+        'business_name': _profileType == 'business' ? _nameController.text.trim() : '',
+        'business_category': _selectedCategory ?? _businessCategoryController.text.trim(),
+        'address': _businessLocationController.text.trim(),
+      };
+      
+      final success = await ApiService.updateProfileByEmail(email, profileData);
+      
+      if (success) {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setBool('profile_completed_$email', true);
+        
+        setState(() => _saving = false);
+        Navigator.pop(context);
+        widget.onProfileComplete();
+      } else {
+        // If API fails, save locally as fallback
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('user_name', _nameController.text.trim());
+        await prefs.setString('user_profile_type', _profileType);
+        await prefs.setBool('profile_completed_$email', true);
+        
+        setState(() => _saving = false);
+        Navigator.pop(context);
+        widget.onProfileComplete();
+      }
+    } else {
+      setState(() => _saving = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: MediaQuery.of(context).size.height * 0.85,
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+    return SlideTransition(
+      position: _slideAnimation,
+      child: FadeTransition(
+        opacity: _fadeAnimation,
+        child: Container(
+          height: MediaQuery.of(context).size.height * 0.9,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                Colors.white,
+                Colors.grey[50]!,
+              ],
+            ),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 20,
+                offset: const Offset(0, -5),
+              ),
+            ],
+          ),
+          child: Column(
+            children: [
+              _buildHeader(),
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Column(
+                    children: [
+                      const SizedBox(height: 20),
+                      _buildAnimatedProfileTypeSelector(),
+                      const SizedBox(height: 30),
+                      AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 400),
+                        child: _profileType == 'individual' 
+                            ? _buildIndividualForm() 
+                            : _buildBusinessForm(),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              _buildAnimatedButton(),
+            ],
+          ),
+        ),
       ),
+    );
+  }
+
+  Widget _buildHeader() {
+    return Container(
+      padding: const EdgeInsets.all(24),
       child: Column(
         children: [
           Container(
-            padding: const EdgeInsets.all(20),
-            child: const Text(
-              'Complete Your Profile',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            width: 40,
+            height: 4,
+            decoration: BoxDecoration(
+              color: Colors.grey[300],
+              borderRadius: BorderRadius.circular(2),
             ),
           ),
+          const SizedBox(height: 20),
+          const Text(
+            '✨ Complete Your Profile',
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: Colors.black87,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Tell us about yourself to get started',
+            style: TextStyle(
+              fontSize: 16,
+              color: Colors.grey[600],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAnimatedProfileTypeSelector() {
+    return Container(
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: Colors.grey[100],
+        borderRadius: BorderRadius.circular(30),
+      ),
+      child: Row(
+        children: [
           Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildProfileTypeSelector(),
-                  const SizedBox(height: 20),
-                  if (_profileType == 'individual') _buildIndividualForm(),
-                  if (_profileType == 'business') _buildBusinessForm(),
-                ],
+            child: GestureDetector(
+              onTap: () => setState(() => _profileType = 'individual'),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 300),
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                decoration: BoxDecoration(
+                  color: _profileType == 'individual' 
+                      ? Colors.white 
+                      : Colors.transparent,
+                  borderRadius: BorderRadius.circular(26),
+                  boxShadow: _profileType == 'individual'
+                      ? [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.1),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ]
+                      : [],
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.person_outline,
+                      color: _profileType == 'individual' 
+                          ? const Color(0xFFDC143C) 
+                          : Colors.grey[600],
+                      size: 20,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Individual',
+                      style: TextStyle(
+                        color: _profileType == 'individual' 
+                            ? const Color(0xFFDC143C) 
+                            : Colors.grey[600],
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
-          Container(
-            padding: const EdgeInsets.all(20),
-            child: SizedBox(
-              width: double.infinity,
-              height: 50,
-              child: ElevatedButton(
-                onPressed: _saving ? null : _saveProfile,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFDC143C),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(25),
-                  ),
+          Expanded(
+            child: GestureDetector(
+              onTap: () => setState(() => _profileType = 'business'),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 300),
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                decoration: BoxDecoration(
+                  color: _profileType == 'business' 
+                      ? Colors.white 
+                      : Colors.transparent,
+                  borderRadius: BorderRadius.circular(26),
+                  boxShadow: _profileType == 'business'
+                      ? [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.1),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ]
+                      : [],
                 ),
-                child: _saving
-                    ? const CircularProgressIndicator(color: Colors.white)
-                    : const Text(
-                        'Done',
-                        style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.business_outlined,
+                      color: _profileType == 'business' 
+                          ? const Color(0xFFDC143C) 
+                          : Colors.grey[600],
+                      size: 20,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Business',
+                      style: TextStyle(
+                        color: _profileType == 'business' 
+                            ? const Color(0xFFDC143C) 
+                            : Colors.grey[600],
+                        fontWeight: FontWeight.w600,
                       ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -703,103 +944,79 @@ class _FirstTimeProfileModalState extends State<FirstTimeProfileModal> {
     );
   }
 
-  Widget _buildProfileTypeSelector() {
-    return Row(
-      children: [
-        Expanded(
-          child: GestureDetector(
-            onTap: () => setState(() => _profileType = 'individual'),
-            child: Container(
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              decoration: BoxDecoration(
-                color: _profileType == 'individual' ? const Color(0xFFDC143C) : Colors.grey[200],
-                borderRadius: BorderRadius.circular(25),
-              ),
-              child: Text(
-                'Individual',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: _profileType == 'individual' ? Colors.white : Colors.black,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: GestureDetector(
-            onTap: () => setState(() => _profileType = 'business'),
-            child: Container(
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              decoration: BoxDecoration(
-                color: _profileType == 'business' ? const Color(0xFFDC143C) : Colors.grey[200],
-                borderRadius: BorderRadius.circular(25),
-              ),
-              child: Text(
-                'Business',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: _profileType == 'business' ? Colors.white : Colors.black,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
   Widget _buildIndividualForm() {
     return Column(
+      key: const ValueKey('individual'),
       children: [
-        _buildProfileImage(),
-        const SizedBox(height: 20),
-        _buildTextField(_nameController, 'Enter Your Name'),
-        const SizedBox(height: 15),
-        _buildTextField(_usernameController, 'Enter Username'),
-        const SizedBox(height: 15),
-        _buildTextField(_emailController, 'Enter Your Email'),
-        const SizedBox(height: 15),
-        _buildTextField(TextEditingController(), 'Enter Your Number', enabled: false),
+        _buildAnimatedProfileImage(),
+        const SizedBox(height: 30),
+        _buildTextField(_nameController, 'Enter Your Full Name', icon: Icons.person_outline),
+        _buildTextField(_usernameController, 'Choose a Username', icon: Icons.alternate_email),
+        _buildTextField(_emailController, 'Enter Your Email', icon: Icons.email_outlined),
       ],
     );
   }
 
   Widget _buildBusinessForm() {
     return Column(
+      key: const ValueKey('business'),
       children: [
-        _buildTextField(_nameController, 'Enter Your Name'),
-        const SizedBox(height: 15),
-        _buildCategoryField(),
-        const SizedBox(height: 15),
-        _buildTextField(_businessLocationController, 'Business Location'),
-        const SizedBox(height: 20),
-        _buildLogoUpload(),
+        _buildTextField(_nameController, 'Business Owner Name', icon: Icons.person_outline),
+        _buildAnimatedCategoryField(),
+        _buildTextField(_businessLocationController, 'Business Location', icon: Icons.location_on_outlined),
+        const SizedBox(height: 10),
+        _buildAnimatedLogoUpload(),
       ],
     );
   }
 
-  Widget _buildProfileImage() {
+  Widget _buildAnimatedProfileImage() {
     return Center(
       child: Stack(
         children: [
-          CircleAvatar(
-            radius: 50,
-            backgroundColor: Colors.grey[300],
-            child: const Icon(Icons.person, size: 50, color: Colors.grey),
+          Container(
+            width: 100,
+            height: 100,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: LinearGradient(
+                colors: [const Color(0xFFDC143C), const Color(0xFFFF6B6B)],
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFFDC143C).withOpacity(0.3),
+                  blurRadius: 20,
+                  offset: const Offset(0, 8),
+                ),
+              ],
+            ),
+            child: const Icon(
+              Icons.person,
+              size: 50,
+              color: Colors.white,
+            ),
           ),
           Positioned(
             bottom: 0,
             right: 0,
             child: Container(
-              padding: const EdgeInsets.all(4),
-              decoration: const BoxDecoration(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
                 color: Colors.white,
                 shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
               ),
-              child: const Icon(Icons.add, size: 20),
+              child: const Icon(
+                Icons.camera_alt,
+                size: 16,
+                color: Color(0xFFDC143C),
+              ),
             ),
           ),
         ],
@@ -807,54 +1024,189 @@ class _FirstTimeProfileModalState extends State<FirstTimeProfileModal> {
     );
   }
 
-  Widget _buildTextField(TextEditingController controller, String hint, {bool enabled = true}) {
-    return TextField(
-      controller: controller,
-      enabled: enabled,
-      decoration: InputDecoration(
-        hintText: hint,
-        border: const UnderlineInputBorder(),
-        enabledBorder: UnderlineInputBorder(
-          borderSide: BorderSide(color: Colors.grey[300]!),
+  Widget _buildAnimatedButton() {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 300),
+        width: double.infinity,
+        height: 56,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: _saving
+                ? [Colors.grey[400]!, Colors.grey[500]!]
+                : [const Color(0xFFDC143C), const Color(0xFFFF6B6B)],
+          ),
+          borderRadius: BorderRadius.circular(28),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFFDC143C).withOpacity(0.3),
+              blurRadius: 15,
+              offset: const Offset(0, 8),
+            ),
+          ],
         ),
-        focusedBorder: const UnderlineInputBorder(
-          borderSide: BorderSide(color: Color(0xFFDC143C)),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: _saving ? null : _saveProfile,
+            borderRadius: BorderRadius.circular(28),
+            child: Center(
+              child: _saving
+                  ? const SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2.5,
+                        color: Colors.white,
+                      ),
+                    )
+                  : const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.rocket_launch,
+                          color: Colors.white,
+                          size: 20,
+                        ),
+                        SizedBox(width: 8),
+                        Text(
+                          'Get Started',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+            ),
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildCategoryField() {
-    return DropdownButtonFormField<String>(
-      value: _selectedCategory,
-      decoration: const InputDecoration(
-        hintText: 'Business Category',
-        border: UnderlineInputBorder(),
+  Widget _buildTextField(TextEditingController controller, String hint, {bool enabled = true, IconData? icon}) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 20),
+      child: TextField(
+        controller: controller,
+        enabled: enabled,
+        style: const TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.w500,
+        ),
+        decoration: InputDecoration(
+          hintText: hint,
+          prefixIcon: icon != null 
+              ? Icon(icon, color: const Color(0xFFDC143C), size: 20)
+              : null,
+          filled: true,
+          fillColor: Colors.white,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: BorderSide.none,
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: BorderSide(color: Colors.grey[200]!),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: const BorderSide(color: Color(0xFFDC143C), width: 2),
+          ),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        ),
       ),
-      items: _categories.map((category) => DropdownMenuItem(
-        value: category,
-        child: Text(category),
-      )).toList(),
-      onChanged: (value) => setState(() => _selectedCategory = value),
     );
   }
 
-  Widget _buildLogoUpload() {
+  Widget _buildAnimatedCategoryField() {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 20),
+      child: DropdownButtonFormField<String>(
+        value: _selectedCategory,
+        decoration: InputDecoration(
+          hintText: 'Select Business Category',
+          prefixIcon: const Icon(Icons.business_center_outlined, color: Color(0xFFDC143C), size: 20),
+          filled: true,
+          fillColor: Colors.white,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: BorderSide.none,
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: BorderSide(color: Colors.grey[200]!),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: const BorderSide(color: Color(0xFFDC143C), width: 2),
+          ),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        ),
+        items: _categories.map((category) => DropdownMenuItem(
+          value: category,
+          child: Text(category),
+        )).toList(),
+        onChanged: (value) => setState(() => _selectedCategory = value),
+      ),
+    );
+  }
+
+  Widget _buildAnimatedLogoUpload() {
     return Container(
       width: double.infinity,
       height: 120,
       decoration: BoxDecoration(
-        border: Border.all(color: const Color(0xFFDC143C), width: 2),
-        borderRadius: BorderRadius.circular(10),
+        gradient: LinearGradient(
+          colors: [Colors.white, Colors.grey[50]!],
+        ),
+        border: Border.all(
+          color: const Color(0xFFDC143C).withOpacity(0.3),
+          width: 2,
+        ),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
-      child: const Column(
+      child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.upload_file, size: 40, color: Color(0xFFDC143C)),
-          SizedBox(height: 8),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: const Color(0xFFDC143C).withOpacity(0.1),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.cloud_upload_outlined,
+              size: 32,
+              color: Color(0xFFDC143C),
+            ),
+          ),
+          const SizedBox(height: 12),
+          const Text(
+            'Upload Business Logo',
+            style: TextStyle(
+              color: Color(0xFFDC143C),
+              fontWeight: FontWeight.w600,
+              fontSize: 16,
+            ),
+          ),
+          const SizedBox(height: 4),
           Text(
-            'Upload Your Logo',
-            style: TextStyle(color: Color(0xFFDC143C), fontWeight: FontWeight.w500),
+            'Tap to select image',
+            style: TextStyle(
+              color: Colors.grey[600],
+              fontSize: 12,
+            ),
           ),
         ],
       ),
@@ -863,6 +1215,8 @@ class _FirstTimeProfileModalState extends State<FirstTimeProfileModal> {
 
   @override
   void dispose() {
+    _slideController.dispose();
+    _fadeController.dispose();
     _nameController.dispose();
     _usernameController.dispose();
     _emailController.dispose();

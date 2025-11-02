@@ -1,54 +1,56 @@
 import 'package:flutter/material.dart';
 import '../widgets/side_menu.dart';
+import '../services/api_service.dart';
 import 'notifications_page.dart';
 
-class DirectoryPage extends StatelessWidget {
+class DirectoryPage extends StatefulWidget {
   const DirectoryPage({super.key});
 
-  final List<Map<String, dynamic>> mockBusinesses = const [
-    {
-      'name': 'Tamil Spice Restaurant',
-      'category': 'Restaurant',
-      'location': 'Chennai',
-      'rating': 4.5,
-      'image': Icons.restaurant,
-    },
-    {
-      'name': 'Tech Solutions Ltd',
-      'category': 'IT Services',
-      'location': 'Coimbatore',
-      'rating': 4.8,
-      'image': Icons.computer,
-    },
-    {
-      'name': 'Fashion Hub',
-      'category': 'Clothing',
-      'location': 'Madurai',
-      'rating': 4.2,
-      'image': Icons.shopping_bag,
-    },
-    {
-      'name': 'Auto Care Center',
-      'category': 'Automotive',
-      'location': 'Salem',
-      'rating': 4.6,
-      'image': Icons.car_repair,
-    },
-    {
-      'name': 'Health Plus Clinic',
-      'category': 'Healthcare',
-      'location': 'Trichy',
-      'rating': 4.9,
-      'image': Icons.local_hospital,
-    },
-    {
-      'name': 'Green Grocers',
-      'category': 'Grocery',
-      'location': 'Tirunelveli',
-      'rating': 4.3,
-      'image': Icons.local_grocery_store,
-    },
-  ];
+  @override
+  State<DirectoryPage> createState() => _DirectoryPageState();
+}
+
+class _DirectoryPageState extends State<DirectoryPage> {
+  List<Map<String, dynamic>> _businesses = [];
+  bool _loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadBusinesses();
+  }
+
+  void _loadBusinesses() async {
+    setState(() => _loading = true);
+    final businesses = await ApiService.getBusinesses();
+    setState(() {
+      _businesses = businesses;
+      _loading = false;
+    });
+  }
+
+  IconData _getCategoryIcon(String? category) {
+    switch (category?.toLowerCase()) {
+      case 'restaurant':
+      case 'food':
+        return Icons.restaurant;
+      case 'it services':
+      case 'technology':
+        return Icons.computer;
+      case 'clothing':
+      case 'fashion':
+        return Icons.shopping_bag;
+      case 'automotive':
+        return Icons.car_repair;
+      case 'healthcare':
+      case 'medical':
+        return Icons.local_hospital;
+      case 'grocery':
+        return Icons.local_grocery_store;
+      default:
+        return Icons.business;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -97,56 +99,46 @@ class DirectoryPage extends StatelessWidget {
           ),
         ],
       ),
-      body: ListView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: mockBusinesses.length,
-        itemBuilder: (context, index) {
-          final business = mockBusinesses[index];
-          return Card(
-            margin: const EdgeInsets.only(bottom: 12),
-            child: ListTile(
-              leading: CircleAvatar(
-                backgroundColor: const Color(0xFFDC143C),
-                child: Icon(
-                  business['image'],
-                  color: Colors.white,
+      body: _loading
+          ? const Center(child: CircularProgressIndicator())
+          : _businesses.isEmpty
+              ? const Center(
+                  child: Text(
+                    'No businesses found',
+                    style: TextStyle(fontSize: 16, color: Colors.grey),
+                  ),
+                )
+              : ListView.builder(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: _businesses.length,
+                  itemBuilder: (context, index) {
+                    final business = _businesses[index];
+                    return Card(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      child: ListTile(
+                        leading: CircleAvatar(
+                          backgroundColor: const Color(0xFFDC143C),
+                          child: Icon(
+                            _getCategoryIcon(business['category']),
+                            color: Colors.white,
+                          ),
+                        ),
+                        title: Text(
+                          business['name'] ?? 'Unknown Business',
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        subtitle: Text(business['category'] ?? 'General'),
+                        onTap: () {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Tapped on ${business['name']}'),
+                            ),
+                          );
+                        },
+                      ),
+                    );
+                  },
                 ),
-              ),
-              title: Text(
-                business['name'],
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
-              subtitle: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(business['category']),
-                  Text(
-                    business['location'],
-                    style: TextStyle(color: Colors.grey[600]),
-                  ),
-                ],
-              ),
-              trailing: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(Icons.star, color: Colors.amber, size: 16),
-                  Text(
-                    business['rating'].toString(),
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                ],
-              ),
-              onTap: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Tapped on ${business['name']}'),
-                  ),
-                );
-              },
-            ),
-          );
-        },
-      ),
     );
   }
 }

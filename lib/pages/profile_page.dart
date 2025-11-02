@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../services/api_service.dart';
 import '../services/auth_service.dart';
 
@@ -33,27 +34,31 @@ class _ProfilePageState extends State<ProfilePage> {
   void _loadProfile() async {
     setState(() => _loading = true);
     
-    // Load categories and profile data in parallel
-    final futures = [
-      ApiService.getBusinessCategories(),
-      AuthService.getPhone().then((phone) => 
-        phone != null ? ApiService.getProfile(phone) : null),
-    ];
+    final phoneNumber = await AuthService.getPhone();
+    final email = await AuthService.getEmail();
     
-    final results = await Future.wait(futures);
-    final categories = results[0] as List<String>;
-    final profile = results[1] as Map<String, dynamic>?;
+    // Load categories
+    final categories = await ApiService.getBusinessCategories();
     
-    _phoneNumber = await AuthService.getPhone();
+    Map<String, dynamic>? profile;
+    
+    if (phoneNumber != null) {
+      // Phone user - load from API
+      profile = await ApiService.getProfile(phoneNumber);
+      _phoneNumber = phoneNumber;
+    } else if (email != null) {
+      // Email user - load from API by email
+      profile = await ApiService.getProfileByEmail(email);
+    }
     
     setState(() {
       _categories = categories;
       if (profile != null) {
         _nameController.text = profile['name'] ?? '';
-        _emailController.text = profile['email'] ?? '';
-        _profileType = profile['profileType'] ?? 'individual';
-        _businessNameController.text = profile['businessName'] ?? '';
-        _selectedCategory = profile['businessCategory'];
+        _emailController.text = profile['email'] ?? email ?? '';
+        _profileType = profile['profile_type'] ?? profile['profileType'] ?? 'individual';
+        _businessNameController.text = profile['business_name'] ?? profile['businessName'] ?? '';
+        _selectedCategory = profile['business_category'] ?? profile['businessCategory'];
         _addressController.text = profile['address'] ?? '';
       }
       _loading = false;
@@ -65,16 +70,27 @@ class _ProfilePageState extends State<ProfilePage> {
     
     setState(() => _saving = true);
     
+    final phoneNumber = await AuthService.getPhone();
+    final email = await AuthService.getEmail();
+    
     final profileData = {
       'name': _nameController.text.trim(),
       'email': _emailController.text.trim(),
-      'profileType': _profileType,
-      'businessName': _businessNameController.text.trim(),
-      'businessCategory': _selectedCategory ?? '',
+      'profile_type': _profileType,
+      'business_name': _businessNameController.text.trim(),
+      'business_category': _selectedCategory ?? '',
       'address': _addressController.text.trim(),
     };
     
-    final success = await ApiService.updateProfile(_phoneNumber!, profileData);
+    bool success = false;
+    
+    if (phoneNumber != null) {
+      // Phone user - save to API
+      success = await ApiService.updateProfile(phoneNumber, profileData);
+    } else if (email != null) {
+      // Email user - save to API by email
+      success = await ApiService.updateProfileByEmail(email, profileData);
+    }
     
     setState(() => _saving = false);
     

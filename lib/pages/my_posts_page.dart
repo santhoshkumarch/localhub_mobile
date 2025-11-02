@@ -30,30 +30,28 @@ class _MyPostsPageState extends State<MyPostsPage> {
     if (!mounted) return;
     setState(() => _loading = true);
     final phoneNumber = await AuthService.getPhone();
-    final user = await AuthService.getUser();
-    print('AuthService user: $user');
-    print('Loading posts for phone: $phoneNumber');
+    final email = await AuthService.getEmail();
+    
+    List<Map<String, dynamic>> posts = [];
+    
     if (phoneNumber != null) {
-      final posts = await ApiService.getUserPosts(phoneNumber);
-      print('Loaded ${posts.length} posts: $posts');
-      if (mounted) {
-        setState(() {
-          _posts = posts.map((post) {
-            return {
-              ...post,
-              'likes': post['likes'] ?? 0,
-              'comments': post['comments'] ?? 0,
-              'views': post['views'] ?? 0,
-            };
-          }).toList();
-          _loading = false;
-        });
-      }
-    } else {
-      print('No phone number found in AuthService');
-      if (mounted) {
-        setState(() => _loading = false);
-      }
+      posts = await ApiService.getUserPosts(phoneNumber);
+    } else if (email != null) {
+      posts = await ApiService.getUserPostsByEmail(email);
+    }
+    
+    if (mounted) {
+      setState(() {
+        _posts = posts.map((post) {
+          return {
+            ...post,
+            'likes': post['likes'] ?? 0,
+            'comments': post['comments'] ?? 0,
+            'views': post['views'] ?? 0,
+          };
+        }).toList();
+        _loading = false;
+      });
     }
   }
 

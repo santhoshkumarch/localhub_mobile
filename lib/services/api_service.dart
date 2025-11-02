@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'auth_service.dart';
 
 // API Service for authentication and data operations
 class ApiService {
@@ -333,6 +334,24 @@ class ApiService {
     return [];
   }
 
+  static Future<List<Map<String, dynamic>>> getUserPostsByEmail(
+      String email) async {
+    for (String baseUrl in [localUrl, androidUrl, productionUrl]) {
+      try {
+        final encodedEmail = Uri.encodeComponent(email);
+        final response =
+            await http.get(Uri.parse('$baseUrl/posts/user-email/$encodedEmail'));
+        if (response.statusCode == 200) {
+          final List<dynamic> data = json.decode(response.body);
+          return data.cast<Map<String, dynamic>>();
+        }
+      } catch (e) {
+        continue;
+      }
+    }
+    return [];
+  }
+
   static Future<List<Map<String, dynamic>>> getAllPosts() async {
     for (String baseUrl in [localUrl, androidUrl, productionUrl]) {
       try {
@@ -488,6 +507,107 @@ class ApiService {
       }
     }
     return false;
+  }
+
+  static Future<bool> registerWithEmail(String email, String password) async {
+    for (String baseUrl in [localUrl, androidUrl, productionUrl]) {
+      try {
+        final response = await http.post(
+          Uri.parse('$baseUrl/auth/register'),
+          headers: {'Content-Type': 'application/json'},
+          body: json.encode({
+            'email': email,
+            'password': password,
+          }),
+        ).timeout(const Duration(seconds: 10));
+        
+        if (response.statusCode == 200 || response.statusCode == 201) {
+          return true;
+        }
+      } catch (e) {
+        continue;
+      }
+    }
+    return false;
+  }
+
+  static Future<bool> loginWithEmail(String email, String password) async {
+    for (String baseUrl in [localUrl, androidUrl, productionUrl]) {
+      try {
+        final response = await http.post(
+          Uri.parse('$baseUrl/auth/user-login'),
+          headers: {'Content-Type': 'application/json'},
+          body: json.encode({
+            'email': email,
+            'password': password,
+          }),
+        ).timeout(const Duration(seconds: 10));
+        
+        if (response.statusCode == 200) {
+          final data = json.decode(response.body);
+          // Store user data for later use
+          await AuthService.saveUserData(data['user']);
+          return true;
+        }
+      } catch (e) {
+        continue;
+      }
+    }
+    return false;
+  }
+
+  static Future<Map<String, dynamic>?> getProfileByEmail(String email) async {
+    for (String baseUrl in [localUrl, androidUrl, productionUrl]) {
+      try {
+        final response = await http.get(
+          Uri.parse('$baseUrl/users/profile/$email'),
+        ).timeout(const Duration(seconds: 10));
+        
+        if (response.statusCode == 200) {
+          return json.decode(response.body);
+        }
+      } catch (e) {
+        continue;
+      }
+    }
+    return null;
+  }
+
+  static Future<bool> updateProfileByEmail(String email, Map<String, dynamic> profileData) async {
+    for (String baseUrl in [localUrl, androidUrl, productionUrl]) {
+      try {
+        final response = await http.put(
+          Uri.parse('$baseUrl/users/profile/$email'),
+          headers: {'Content-Type': 'application/json'},
+          body: json.encode(profileData),
+        ).timeout(const Duration(seconds: 10));
+        
+        if (response.statusCode == 200) {
+          return true;
+        }
+      } catch (e) {
+        continue;
+      }
+    }
+    return false;
+  }
+
+  static Future<List<Map<String, dynamic>>> getBusinesses() async {
+    for (String baseUrl in [localUrl, androidUrl, productionUrl]) {
+      try {
+        final response = await http.get(
+          Uri.parse('$baseUrl/businesses'),
+        ).timeout(const Duration(seconds: 10));
+        
+        if (response.statusCode == 200) {
+          final List<dynamic> data = json.decode(response.body);
+          return data.cast<Map<String, dynamic>>();
+        }
+      } catch (e) {
+        continue;
+      }
+    }
+    return [];
   }
 }
 

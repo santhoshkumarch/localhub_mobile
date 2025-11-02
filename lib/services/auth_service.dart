@@ -30,7 +30,12 @@ class AuthService {
 
   static Future<String?> getPhone() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(_userKey);
+    final user = prefs.getString(_userKey);
+    // Return phone if it's a phone number, otherwise null
+    if (user != null && user.contains('@')) {
+      return null; // It's an email
+    }
+    return user;
   }
 
   static Future<String?> getLastPhone() async {
@@ -48,5 +53,29 @@ class AuthService {
     await prefs.remove(_tokenKey);
     await prefs.remove(_userKey);
     // Keep last phone for convenience
+  }
+
+  static Future<void> saveUserData(Map<String, dynamic> userData) async {
+    final prefs = await SharedPreferences.getInstance();
+    if (userData['phone'] != null) {
+      await prefs.setString(_userKey, userData['phone']);
+      await prefs.setString(_lastPhoneKey, userData['phone']);
+    } else if (userData['email'] != null) {
+      await prefs.setString(_userKey, userData['email']);
+      await prefs.setString('user_email', userData['email']);
+    }
+    if (userData['name'] != null) {
+      await prefs.setString('user_name', userData['name']);
+    }
+  }
+
+  static Future<String?> getEmail() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('user_email');
+  }
+
+  static Future<String?> getName() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('user_name');
   }
 }
