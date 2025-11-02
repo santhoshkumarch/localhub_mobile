@@ -609,6 +609,50 @@ class ApiService {
     }
     return [];
   }
+
+  static Future<bool> createBusinessByPhone(String phoneNumber, Map<String, dynamic> businessData) async {
+    for (String baseUrl in [localUrl, androidUrl, productionUrl]) {
+      try {
+        final response = await http.post(
+          Uri.parse('$baseUrl/businesses/by-phone'),
+          headers: {'Content-Type': 'application/json'},
+          body: json.encode({
+            'phoneNumber': phoneNumber,
+            ...businessData,
+          }),
+        ).timeout(const Duration(seconds: 10));
+        
+        if (response.statusCode == 200 || response.statusCode == 201) {
+          return true;
+        }
+      } catch (e) {
+        continue;
+      }
+    }
+    return false;
+  }
+
+  static Future<bool> createBusinessByEmail(String email, Map<String, dynamic> businessData) async {
+    for (String baseUrl in [localUrl, androidUrl, productionUrl]) {
+      try {
+        final response = await http.post(
+          Uri.parse('$baseUrl/businesses/by-email'),
+          headers: {'Content-Type': 'application/json'},
+          body: json.encode({
+            'email': email,
+            ...businessData,
+          }),
+        ).timeout(const Duration(seconds: 10));
+        
+        if (response.statusCode == 200 || response.statusCode == 201) {
+          return true;
+        }
+      } catch (e) {
+        continue;
+      }
+    }
+    return false;
+  }
 }
 
 class MenuItem {

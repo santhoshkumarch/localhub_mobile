@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../services/api_service.dart';
+import '../services/auth_service.dart';
 import '../utils/icon_utils.dart';
 import '../widgets/side_menu.dart';
 import 'notifications_page.dart';
@@ -19,6 +20,7 @@ class _HomePageState extends State<HomePage> {
   List<MenuItem> menus = [];
   bool isLoading = true;
   String? errorMessage;
+  String userName = 'User';
 
   // Constants for better maintainability
   static const double _headerRadius = 30.0;
@@ -38,6 +40,28 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     _loadMenus();
+    _loadUserName();
+  }
+
+  void _loadUserName() async {
+    final phoneNumber = await AuthService.getPhone();
+    final email = await AuthService.getEmail();
+    
+    String? name;
+    
+    if (phoneNumber != null) {
+      final profile = await ApiService.getProfile(phoneNumber);
+      name = profile?['name'];
+    } else if (email != null) {
+      final profile = await ApiService.getProfileByEmail(email);
+      name = profile?['name'];
+    }
+    
+    if (mounted) {
+      setState(() {
+        userName = name ?? 'User';
+      });
+    }
   }
 
   Future<void> _loadMenus() async {
@@ -218,13 +242,13 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
           const SizedBox(width: 12),
-          const Expanded(
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Santhosh Kumar',
-                  style: TextStyle(
+                  userName,
+                  style: const TextStyle(
                     color: Colors.white,
                     fontSize: 18,
                     fontWeight: FontWeight.w600,

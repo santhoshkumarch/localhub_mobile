@@ -698,6 +698,17 @@ class _FirstTimeProfileModalState extends State<FirstTimeProfileModal> with Tick
 
       final success = await ApiService.updateProfile(phoneNumber, profileData);
       
+      // If business type, also create business entry
+      if (success && _profileType == 'business') {
+        final businessData = {
+          'name': _nameController.text.trim(),
+          'category': _selectedCategory ?? _businessCategoryController.text.trim(),
+          'address': _businessLocationController.text.trim(),
+          'phone': phoneNumber,
+        };
+        await ApiService.createBusinessByPhone(phoneNumber, businessData);
+      }
+      
       if (success) {
         setState(() => _saving = false);
         Navigator.pop(context);
@@ -724,6 +735,17 @@ class _FirstTimeProfileModalState extends State<FirstTimeProfileModal> with Tick
       };
       
       final success = await ApiService.updateProfileByEmail(email, profileData);
+      
+      // If business type, also create business entry
+      if (success && _profileType == 'business') {
+        final businessData = {
+          'name': _nameController.text.trim(),
+          'category': _selectedCategory ?? _businessCategoryController.text.trim(),
+          'address': _businessLocationController.text.trim(),
+          'email': email,
+        };
+        await ApiService.createBusinessByEmail(email, businessData);
+      }
       
       if (success) {
         final prefs = await SharedPreferences.getInstance();
@@ -961,7 +983,7 @@ class _FirstTimeProfileModalState extends State<FirstTimeProfileModal> with Tick
     return Column(
       key: const ValueKey('business'),
       children: [
-        _buildTextField(_nameController, 'Business Owner Name', icon: Icons.person_outline),
+        _buildTextField(_nameController, 'Business Name', icon: Icons.person_outline),
         _buildAnimatedCategoryField(),
         _buildTextField(_businessLocationController, 'Business Location', icon: Icons.location_on_outlined),
         const SizedBox(height: 10),
