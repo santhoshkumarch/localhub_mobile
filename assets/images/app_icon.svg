@@ -1,0 +1,30 @@
+<svg viewBox="0 0 192 192" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background gradient -->
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FF4444;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#CC0000;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="accentGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFD700;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#FFA500;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Rounded background -->
+  <rect width="192" height="192" rx="45" fill="url(#bgGradient)"/>
+  
+  <!-- Main circle representing community/people -->
+  <circle cx="96" cy="70" r="28" fill="white" opacity="0.95"/>
+  
+  <!-- Two smaller circles for community aspect -->
+  <circle cx="65" cy="105" r="22" fill="white" opacity="0.9"/>
+  <circle cx="127" cy="105" r="22" fill="white" opacity="0.9"/>
+  
+  <!-- Connection lines -->
+  <line x1="96" y1="98" x2="75" y2="120" stroke="url(#accentGradient)" stroke-width="3" stroke-linecap="round"/>
+  <line x1="96" y1="98" x2="117" y2="120" stroke="url(#accentGradient)" stroke-width="3" stroke-linecap="round"/>
+  
+  <!-- Accent element - speech bubble tail -->
+  <path d="M 96 140 L 85 155 L 107 155 Z" fill="url(#accentGradient)"/>
+</svg>

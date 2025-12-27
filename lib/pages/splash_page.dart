@@ -52,7 +52,7 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
   }
 
   void _deleteSpecificUser() async {
-    final phone = '9944542511';
+    const phone = '9944542511';
     
     // Clear local storage for this user
     try {

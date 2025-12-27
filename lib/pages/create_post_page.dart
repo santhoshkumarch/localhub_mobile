@@ -25,8 +25,8 @@ class _CreatePostPageState extends State<CreatePostPage> {
   String _userName = 'User';
   bool _loading = false;
   bool _creating = false;
-  List<File> _selectedImages = [];
-  bool _showOptions = false;
+  final List<File> _selectedImages = [];
+  final bool _showOptions = false;
 
   @override
   void initState() {
@@ -254,7 +254,7 @@ class _CreatePostPageState extends State<CreatePostPage> {
         barrierDismissible: false,
         builder: (context) => AlertDialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          title: Row(
+          title: const Row(
             children: [
               Icon(Icons.check_circle, color: Colors.green, size: 28),
               SizedBox(width: 12),
@@ -265,21 +265,21 @@ class _CreatePostPageState extends State<CreatePostPage> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
+              const Text(
                 'Your post has been sent to admin for approval.',
                 style: TextStyle(fontSize: 16),
               ),
-              SizedBox(height: 12),
+              const SizedBox(height: 12),
               Container(
-                padding: EdgeInsets.all(12),
+                padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   color: Colors.blue.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(
                   children: [
-                    Icon(Icons.info_outline, color: Colors.blue, size: 20),
-                    SizedBox(width: 8),
+                    const Icon(Icons.info_outline, color: Colors.blue, size: 20),
+                    const SizedBox(width: 8),
                     Expanded(
                       child: Text(
                         'It will appear in feeds once approved by admin.',
@@ -297,7 +297,7 @@ class _CreatePostPageState extends State<CreatePostPage> {
                 Navigator.of(context).pop(); // Close dialog
                 Navigator.of(context).pop(true); // Close create post page
               },
-              child: Text(
+              child: const Text(
                 'OK',
                 style: TextStyle(color: Color(0xFFDC143C), fontWeight: FontWeight.w600),
               ),
@@ -1001,8 +1001,8 @@ class _FirstTimeProfileModalState extends State<FirstTimeProfileModal> with Tick
             height: 100,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              gradient: LinearGradient(
-                colors: [const Color(0xFFDC143C), const Color(0xFFFF6B6B)],
+              gradient: const LinearGradient(
+                colors: [Color(0xFFDC143C), Color(0xFFFF6B6B)],
               ),
               boxShadow: [
                 BoxShadow(

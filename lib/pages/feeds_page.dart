@@ -390,10 +390,10 @@ class _FeedsPageState extends State<FeedsPage> {
                                         child: Row(
                                           mainAxisSize: MainAxisSize.min,
                                           children: [
-                                            Icon(
+                                            const Icon(
                                               Icons.verified,
                                               size: 14,
-                                              color: const Color(0xFFDC143C),
+                                              color: Color(0xFFDC143C),
                                             ),
                                             const SizedBox(width: 4),
                                             Text(
@@ -429,13 +429,13 @@ class _FeedsPageState extends State<FeedsPage> {
                                 // Stats row
                                 Row(
                                   children: [
-                                    Icon(Icons.visibility, size: 16, color: Colors.grey),
+                                    const Icon(Icons.visibility, size: 16, color: Colors.grey),
                                     Text(' ${post['views'] ?? 12} views', style: TextStyle(color: Colors.grey[600], fontSize: 12)),
                                     const SizedBox(width: 16),
-                                    Icon(Icons.favorite, size: 16, color: Colors.red),
+                                    const Icon(Icons.favorite, size: 16, color: Colors.red),
                                     Text(' ${post['likes'] ?? 0}', style: TextStyle(color: Colors.grey[600], fontSize: 12)),
                                     const SizedBox(width: 16),
-                                    Icon(Icons.comment, size: 16, color: Colors.blue),
+                                    const Icon(Icons.comment, size: 16, color: Colors.blue),
                                     Text(' ${post['comments'] ?? 0}', style: TextStyle(color: Colors.grey[600], fontSize: 12)),
                                   ],
                                 ),
@@ -477,11 +477,11 @@ class _FeedsPageState extends State<FeedsPage> {
                                         onTap: () => _showCommentsDrawer(postId, index),
                                         child: Container(
                                           padding: const EdgeInsets.symmetric(vertical: 8),
-                                          child: Row(
+                                          child: const Row(
                                             mainAxisAlignment: MainAxisAlignment.center,
                                             children: [
                                               Icon(Icons.comment_outlined, size: 20, color: Colors.grey),
-                                              const SizedBox(width: 4),
+                                              SizedBox(width: 4),
                                               Text(
                                                 'Comment',
                                                 style: TextStyle(color: Colors.grey, fontWeight: FontWeight.w500),
@@ -501,11 +501,11 @@ class _FeedsPageState extends State<FeedsPage> {
                                         },
                                         child: Container(
                                           padding: const EdgeInsets.symmetric(vertical: 8),
-                                          child: Row(
+                                          child: const Row(
                                             mainAxisAlignment: MainAxisAlignment.center,
                                             children: [
                                               Icon(Icons.share_outlined, size: 20, color: Colors.grey),
-                                              const SizedBox(width: 4),
+                                              SizedBox(width: 4),
                                               Text(
                                                 'Share',
                                                 style: TextStyle(color: Colors.grey, fontWeight: FontWeight.w500),

@@ -71,7 +71,7 @@ class PartyHornPainter extends CustomPainter {
       ..style = PaintingStyle.fill;
 
     // Horn body gradient
-    final gradient = const LinearGradient(
+    const gradient = LinearGradient(
       colors: [Colors.red, Colors.orange, Colors.yellow],
       begin: Alignment.topCenter,
       end: Alignment.bottomCenter,
