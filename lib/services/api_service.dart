@@ -39,8 +39,9 @@ class ApiService {
           body: json.encode({'phone': phoneNumber}),
         ).timeout(const Duration(seconds: 5));
         print('Register response: ${response.statusCode} - ${response.body}');
-        if (response.statusCode == 200 || response.statusCode == 201)
+        if (response.statusCode == 200 || response.statusCode == 201) {
           return true;
+        }
       } catch (e) {
         print('Register error: $e');
         continue;

@@ -285,17 +285,17 @@ class _MyPostsPageState extends State<MyPostsPage> {
                                 // Stats row
                                 Row(
                                   children: [
-                                    Icon(Icons.visibility, size: 16, color: Colors.grey),
+                                    const Icon(Icons.visibility, size: 16, color: Colors.grey),
                                     Text(' ${post['views'] ?? 0} views', style: TextStyle(color: Colors.grey[600], fontSize: 12)),
                                     const SizedBox(width: 16),
-                                    Icon(Icons.favorite, size: 16, color: Colors.red),
+                                    const Icon(Icons.favorite, size: 16, color: Colors.red),
                                     Text(' ${post['likes'] ?? 0}', style: TextStyle(color: Colors.grey[600], fontSize: 12)),
                                     const SizedBox(width: 16),
                                     GestureDetector(
                                       onTap: () => _showCommentsDrawer(post['id'] ?? index, index),
                                       child: Row(
                                         children: [
-                                          Icon(Icons.comment, size: 16, color: Colors.blue),
+                                          const Icon(Icons.comment, size: 16, color: Colors.blue),
                                           Text(' ${post['comments'] ?? 0}', style: TextStyle(color: Colors.grey[600], fontSize: 12)),
                                         ],
                                       ),

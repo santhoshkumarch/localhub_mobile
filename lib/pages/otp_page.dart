@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'main_tabs.dart';
-import '../services/api_service.dart';
 import '../services/auth_service.dart';
 
 class OTPPage extends StatefulWidget {

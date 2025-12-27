@@ -86,7 +86,7 @@ class _HomePageState extends State<HomePage> {
         menus = fetchedMenus;
         isLoading = false;
       });
-    } catch (e, stackTrace) {
+    } catch (e) {
       debugPrint('API Error: $e');
 
       if (!mounted) return;
