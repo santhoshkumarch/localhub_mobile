@@ -796,29 +796,32 @@ class _FirstTimeProfileModalState extends State<FirstTimeProfileModal> with Tick
               ),
             ],
           ),
-          child: Column(
-            children: [
-              _buildHeader(),
-              Expanded(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
-                  child: Column(
-                    children: [
-                      const SizedBox(height: 20),
-                      _buildAnimatedProfileTypeSelector(),
-                      const SizedBox(height: 30),
-                      AnimatedSwitcher(
-                        duration: const Duration(milliseconds: 400),
-                        child: _profileType == 'individual' 
-                            ? _buildIndividualForm() 
-                            : _buildBusinessForm(),
-                      ),
-                    ],
+          child: SafeArea(
+            child: Column(
+              children: [
+                _buildHeader(),
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: Column(
+                      children: [
+                        const SizedBox(height: 20),
+                        _buildAnimatedProfileTypeSelector(),
+                        const SizedBox(height: 30),
+                        AnimatedSwitcher(
+                          duration: const Duration(milliseconds: 400),
+                          child: _profileType == 'individual' 
+                              ? _buildIndividualForm() 
+                              : _buildBusinessForm(),
+                        ),
+                        const SizedBox(height: 100), // Extra space for button
+                      ],
+                    ),
                   ),
                 ),
-              ),
-              _buildAnimatedButton(),
-            ],
+                _buildAnimatedButton(),
+              ],
+            ),
           ),
         ),
       ),
@@ -969,9 +972,10 @@ class _FirstTimeProfileModalState extends State<FirstTimeProfileModal> with Tick
   Widget _buildIndividualForm() {
     return Column(
       key: const ValueKey('individual'),
+      mainAxisSize: MainAxisSize.min,
       children: [
         _buildAnimatedProfileImage(),
-        const SizedBox(height: 30),
+        const SizedBox(height: 20),
         _buildTextField(_nameController, 'Enter Your Full Name', icon: Icons.person_outline),
         _buildTextField(_usernameController, 'Choose a Username', icon: Icons.alternate_email),
         _buildTextField(_emailController, 'Enter Your Email', icon: Icons.email_outlined),
@@ -982,6 +986,7 @@ class _FirstTimeProfileModalState extends State<FirstTimeProfileModal> with Tick
   Widget _buildBusinessForm() {
     return Column(
       key: const ValueKey('business'),
+      mainAxisSize: MainAxisSize.min,
       children: [
         _buildTextField(_nameController, 'Business Name', icon: Icons.person_outline),
         _buildAnimatedCategoryField(),
@@ -1180,7 +1185,7 @@ class _FirstTimeProfileModalState extends State<FirstTimeProfileModal> with Tick
   Widget _buildAnimatedLogoUpload() {
     return Container(
       width: double.infinity,
-      height: 120,
+      height: 100,
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [Colors.white, Colors.grey[50]!],
@@ -1202,32 +1207,31 @@ class _FirstTimeProfileModalState extends State<FirstTimeProfileModal> with Tick
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Container(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
               color: const Color(0xFFDC143C).withOpacity(0.1),
               shape: BoxShape.circle,
             ),
             child: const Icon(
               Icons.cloud_upload_outlined,
-              size: 32,
+              size: 24,
               color: Color(0xFFDC143C),
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
           const Text(
             'Upload Business Logo',
             style: TextStyle(
               color: Color(0xFFDC143C),
               fontWeight: FontWeight.w600,
-              fontSize: 16,
+              fontSize: 14,
             ),
           ),
-          const SizedBox(height: 4),
           Text(
             'Tap to select image',
             style: TextStyle(
               color: Colors.grey[600],
-              fontSize: 12,
+              fontSize: 11,
             ),
           ),
         ],

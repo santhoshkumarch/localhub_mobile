@@ -1,12 +1,7 @@
-import 'dart:async';
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
 import 'login_page.dart';
 import 'main_tabs.dart';
 import '../services/auth_service.dart';
-import '../services/api_service.dart';
 
 class SplashPage extends StatefulWidget {
   const SplashPage({super.key});
@@ -35,10 +30,17 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
     );
 
     _controller.forward();
-    _deleteSpecificUser();
+    _navigateAfterSplash();
+  }
 
-    Timer(const Duration(milliseconds: 2500), () async {
+  Future<void> _navigateAfterSplash() async {
+    await Future.delayed(const Duration(milliseconds: 2500));
+    if (!mounted) return;
+    
+    try {
       final isLoggedIn = await AuthService.isLoggedIn();
+      if (!mounted) return;
+      
       if (isLoggedIn) {
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (_) => const MainTabs()),
@@ -48,47 +50,12 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
           MaterialPageRoute(builder: (_) => const LoginPage()),
         );
       }
-    });
-  }
-
-  void _deleteSpecificUser() async {
-    const phone = '9944542511';
-    
-    // Clear local storage for this user
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.remove('user_name_$phone');
-      await prefs.remove('user_type_$phone');
-      await prefs.remove('user_email_$phone');
-      await prefs.remove('user_category_$phone');
-      await prefs.remove('user_address_$phone');
-      print('Cleared local storage for user $phone');
     } catch (e) {
-      print('Error clearing local storage: $e');
+      if (!mounted) return;
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (_) => const LoginPage()),
+      );
     }
-  }
-
-  Future<Map<String, dynamic>> _checkLoginStatus(String phone) async {
-    const baseUrls = [
-      'https://localhubbackend-production.up.railway.app/api',
-      'https://localhubbackend-production.up.railway.app/api'
-    ];
-
-    for (String baseUrl in baseUrls) {
-      try {
-        final response = await http.post(
-          Uri.parse('$baseUrl/auth/check-user'),
-          headers: {'Content-Type': 'application/json'},
-          body: json.encode({'phone': phone}),
-        );
-        if (response.statusCode == 200) {
-          return json.decode(response.body);
-        }
-      } catch (e) {
-        continue;
-      }
-    }
-    return {'exists': false, 'isLoggedIn': false};
   }
 
   @override
@@ -102,21 +69,19 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
     return Scaffold(
       backgroundColor: Colors.white,
       body: Center(
-        child: AnimatedBuilder(
-          animation: _controller,
-          builder: (context, child) {
-            return Transform.scale(
-              scale: _scaleAnimation.value,
-              child: Opacity(
-                opacity: _fadeAnimation.value,
-                child: Image.asset(
-                  'assets/images/logo.png',
-                  width: 300,
-                  height: 300,
-                ),
-              ),
-            );
-          },
+        child: FadeTransition(
+          opacity: _fadeAnimation,
+          child: ScaleTransition(
+            scale: _scaleAnimation,
+            child: Image.asset(
+              'assets/images/logo.png',
+              width: 300,
+              height: 300,
+              errorBuilder: (context, error, stackTrace) {
+                return const Icon(Icons.group, size: 150, color: Colors.red);
+              },
+            ),
+          ),
         ),
       ),
     );

@@ -3,6 +3,10 @@ import 'package:flutter/material.dart';
 import 'pages/splash_page.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  FlutterError.onError = (details) {
+    FlutterError.presentError(details);
+  };
   runApp(const SocialApp());
 }
 
@@ -16,12 +20,11 @@ class SocialApp extends StatelessWidget {
         ColorScheme.fromSeed(seedColor: seed, brightness: Brightness.light);
 
     return MaterialApp(
-      title: 'Namma Chennai',
+      title: 'My Gropu App',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: colorScheme,
         useMaterial3: true,
-        fontFamily: 'Poppins',
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
             backgroundColor: colorScheme.primary,

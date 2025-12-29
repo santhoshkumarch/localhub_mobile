@@ -1,4 +1,4 @@
-# Namma Chennai - App Icon Setup
+# My gropu App - App Icon Setup
 
 ## Overview
 The app icon has been created with a red gradient background and white community circles, representing the social nature of the app. The design uses the app's primary color scheme (red #FF4444 to #CC0000) with gold accents.
