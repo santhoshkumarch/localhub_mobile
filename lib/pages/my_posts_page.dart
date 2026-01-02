@@ -31,15 +31,15 @@ class _MyPostsPageState extends State<MyPostsPage> {
     setState(() => _loading = true);
     final phoneNumber = await AuthService.getPhone();
     final email = await AuthService.getEmail();
-    
+
     List<Map<String, dynamic>> posts = [];
-    
+
     if (phoneNumber != null) {
       posts = await ApiService.getUserPosts(phoneNumber);
     } else if (email != null) {
       posts = await ApiService.getUserPostsByEmail(email);
     }
-    
+
     if (mounted) {
       setState(() {
         _posts = posts.map((post) {
@@ -58,7 +58,8 @@ class _MyPostsPageState extends State<MyPostsPage> {
   final List<Map<String, dynamic>> mockPosts = const [
     {
       'id': 1,
-      'content': 'Just opened my new restaurant in Chennai! Come try our authentic Tamil cuisine 🍛',
+      'content':
+          'Just opened my new restaurant in Chennai! Come try our authentic Tamil cuisine 🍛',
       'timestamp': '2 hours ago',
       'likes': 24,
       'comments': 8,
@@ -66,7 +67,8 @@ class _MyPostsPageState extends State<MyPostsPage> {
     },
     {
       'id': 2,
-      'content': 'Looking for reliable suppliers for my textile business. Any recommendations?',
+      'content':
+          'Looking for reliable suppliers for my textile business. Any recommendations?',
       'timestamp': '1 day ago',
       'likes': 12,
       'comments': 15,
@@ -74,7 +76,8 @@ class _MyPostsPageState extends State<MyPostsPage> {
     },
     {
       'id': 3,
-      'content': 'Great networking event in Coimbatore today! Met amazing entrepreneurs 💼',
+      'content':
+          'Great networking event in Coimbatore today! Met amazing entrepreneurs 💼',
       'timestamp': '3 days ago',
       'likes': 45,
       'comments': 12,
@@ -82,7 +85,8 @@ class _MyPostsPageState extends State<MyPostsPage> {
     },
     {
       'id': 4,
-      'content': 'Special discount on all electronics this weekend! Visit our store in Madurai',
+      'content':
+          'Special discount on all electronics this weekend! Visit our store in Madurai',
       'timestamp': '1 week ago',
       'likes': 67,
       'comments': 23,
@@ -111,7 +115,7 @@ class _MyPostsPageState extends State<MyPostsPage> {
       final dateTime = DateTime.parse(timestamp);
       final now = DateTime.now();
       final difference = now.difference(dateTime);
-      
+
       if (difference.inMinutes < 60) {
         return '${difference.inMinutes}m ago';
       } else if (difference.inHours < 24) {
@@ -138,38 +142,38 @@ class _MyPostsPageState extends State<MyPostsPage> {
             onPressed: () => Scaffold.of(context).openDrawer(),
           ),
         ),
-        actions: [
-          IconButton(
-            icon: Stack(
-              children: [
-                const Icon(Icons.notifications),
-                Positioned(
-                  right: 0,
-                  top: 0,
-                  child: Container(
-                    padding: const EdgeInsets.all(2),
-                    decoration: const BoxDecoration(
-                      color: Colors.red,
-                      shape: BoxShape.circle,
-                    ),
-                    constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
-                    child: const Text(
-                      '2',
-                      style: TextStyle(color: Colors.white, fontSize: 10),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const NotificationsPage()),
-              );
-            },
-          ),
-        ],
+        // actions: [
+        //   IconButton(
+        //     icon: Stack(
+        //       children: [
+        //         const Icon(Icons.notifications),
+        //         Positioned(
+        //           right: 0,
+        //           top: 0,
+        //           child: Container(
+        //             padding: const EdgeInsets.all(2),
+        //             decoration: const BoxDecoration(
+        //               color: Colors.red,
+        //               shape: BoxShape.circle,
+        //             ),
+        //             constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+        //             child: const Text(
+        //               '2',
+        //               style: TextStyle(color: Colors.white, fontSize: 10),
+        //               textAlign: TextAlign.center,
+        //             ),
+        //           ),
+        //         ),
+        //       ],
+        //     ),
+        //     onPressed: () {
+        //       Navigator.push(
+        //         context,
+        //         MaterialPageRoute(builder: (_) => const NotificationsPage()),
+        //       );
+        //     },
+        //   ),
+        // ],
       ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
@@ -182,8 +186,11 @@ class _MyPostsPageState extends State<MyPostsPage> {
                         children: [
                           Icon(Icons.post_add, size: 64, color: Colors.grey),
                           SizedBox(height: 16),
-                          Text('No posts yet', style: TextStyle(fontSize: 18, color: Colors.grey)),
-                          Text('Create your first post!', style: TextStyle(color: Colors.grey)),
+                          Text('No posts yet',
+                              style:
+                                  TextStyle(fontSize: 18, color: Colors.grey)),
+                          Text('Create your first post!',
+                              style: TextStyle(color: Colors.grey)),
                         ],
                       ),
                     )
@@ -211,30 +218,38 @@ class _MyPostsPageState extends State<MyPostsPage> {
                                   post['content'] ?? '',
                                   style: const TextStyle(fontSize: 16),
                                 ),
-                                if (post['mediaUrls'] != null && (post['mediaUrls'] as List).isNotEmpty)
+                                if (post['mediaUrls'] != null &&
+                                    (post['mediaUrls'] as List).isNotEmpty)
                                   const SizedBox(height: 12),
-                                if (post['mediaUrls'] != null && (post['mediaUrls'] as List).isNotEmpty)
+                                if (post['mediaUrls'] != null &&
+                                    (post['mediaUrls'] as List).isNotEmpty)
                                   SizedBox(
                                     height: 200,
                                     child: ListView.builder(
                                       scrollDirection: Axis.horizontal,
-                                      itemCount: (post['mediaUrls'] as List).length,
+                                      itemCount:
+                                          (post['mediaUrls'] as List).length,
                                       itemBuilder: (context, mediaIndex) {
                                         return Container(
-                                          margin: const EdgeInsets.only(right: 8),
+                                          margin:
+                                              const EdgeInsets.only(right: 8),
                                           child: ClipRRect(
-                                            borderRadius: BorderRadius.circular(8),
+                                            borderRadius:
+                                                BorderRadius.circular(8),
                                             child: Image.network(
-                                              (post['mediaUrls'] as List)[mediaIndex],
+                                              (post['mediaUrls']
+                                                  as List)[mediaIndex],
                                               width: 200,
                                               height: 200,
                                               fit: BoxFit.cover,
-                                              errorBuilder: (context, error, stackTrace) {
+                                              errorBuilder:
+                                                  (context, error, stackTrace) {
                                                 return Container(
                                                   width: 200,
                                                   height: 200,
                                                   color: Colors.grey[300],
-                                                  child: const Icon(Icons.image, size: 50),
+                                                  child: const Icon(Icons.image,
+                                                      size: 50),
                                                 );
                                               },
                                             ),
@@ -247,9 +262,11 @@ class _MyPostsPageState extends State<MyPostsPage> {
                                 Row(
                                   children: [
                                     Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 8, vertical: 4),
                                       decoration: BoxDecoration(
-                                        color: const Color(0xFFDC143C).withOpacity(0.1),
+                                        color: const Color(0xFFDC143C)
+                                            .withOpacity(0.1),
                                         borderRadius: BorderRadius.circular(12),
                                       ),
                                       child: Text(
@@ -264,10 +281,12 @@ class _MyPostsPageState extends State<MyPostsPage> {
                                     if (post['assignedLabel'] != null) ...[
                                       const SizedBox(width: 8),
                                       Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 8, vertical: 4),
                                         decoration: BoxDecoration(
                                           color: Colors.blue.withOpacity(0.1),
-                                          borderRadius: BorderRadius.circular(12),
+                                          borderRadius:
+                                              BorderRadius.circular(12),
                                         ),
                                         child: Text(
                                           post['assignedLabel'],
@@ -285,18 +304,31 @@ class _MyPostsPageState extends State<MyPostsPage> {
                                 // Stats row
                                 Row(
                                   children: [
-                                    const Icon(Icons.visibility, size: 16, color: Colors.grey),
-                                    Text(' ${post['views'] ?? 0} views', style: TextStyle(color: Colors.grey[600], fontSize: 12)),
+                                    const Icon(Icons.visibility,
+                                        size: 16, color: Colors.grey),
+                                    Text(' ${post['views'] ?? 0} views',
+                                        style: TextStyle(
+                                            color: Colors.grey[600],
+                                            fontSize: 12)),
                                     const SizedBox(width: 16),
-                                    const Icon(Icons.favorite, size: 16, color: Colors.red),
-                                    Text(' ${post['likes'] ?? 0}', style: TextStyle(color: Colors.grey[600], fontSize: 12)),
+                                    const Icon(Icons.favorite,
+                                        size: 16, color: Colors.red),
+                                    Text(' ${post['likes'] ?? 0}',
+                                        style: TextStyle(
+                                            color: Colors.grey[600],
+                                            fontSize: 12)),
                                     const SizedBox(width: 16),
                                     GestureDetector(
-                                      onTap: () => _showCommentsDrawer(post['id'] ?? index, index),
+                                      onTap: () => _showCommentsDrawer(
+                                          post['id'] ?? index, index),
                                       child: Row(
                                         children: [
-                                          const Icon(Icons.comment, size: 16, color: Colors.blue),
-                                          Text(' ${post['comments'] ?? 0}', style: TextStyle(color: Colors.grey[600], fontSize: 12)),
+                                          const Icon(Icons.comment,
+                                              size: 16, color: Colors.blue),
+                                          Text(' ${post['comments'] ?? 0}',
+                                              style: TextStyle(
+                                                  color: Colors.grey[600],
+                                                  fontSize: 12)),
                                         ],
                                       ),
                                     ),
@@ -304,7 +336,8 @@ class _MyPostsPageState extends State<MyPostsPage> {
                                 ),
                                 const SizedBox(height: 12),
                                 Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
                                   children: [
                                     Text(
                                       _formatTimestamp(post['createdAt'] ?? ''),
@@ -316,19 +349,23 @@ class _MyPostsPageState extends State<MyPostsPage> {
                                     Row(
                                       children: [
                                         Container(
-                                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 8, vertical: 4),
                                           decoration: BoxDecoration(
-                                            color: post['status'] == 'approved' 
+                                            color: post['status'] == 'approved'
                                                 ? Colors.green.withOpacity(0.1)
-                                                : Colors.orange.withOpacity(0.1),
-                                            borderRadius: BorderRadius.circular(12),
+                                                : Colors.orange
+                                                    .withOpacity(0.1),
+                                            borderRadius:
+                                                BorderRadius.circular(12),
                                           ),
                                           child: Text(
                                             post['status'] ?? 'pending',
                                             style: TextStyle(
-                                              color: post['status'] == 'approved' 
-                                                  ? Colors.green
-                                                  : Colors.orange,
+                                              color:
+                                                  post['status'] == 'approved'
+                                                      ? Colors.green
+                                                      : Colors.orange,
                                               fontSize: 12,
                                               fontWeight: FontWeight.w500,
                                             ),
@@ -336,7 +373,8 @@ class _MyPostsPageState extends State<MyPostsPage> {
                                         ),
                                         const SizedBox(width: 16),
                                         PopupMenuButton(
-                                          icon: const Icon(Icons.more_vert, size: 16),
+                                          icon: const Icon(Icons.more_vert,
+                                              size: 16),
                                           itemBuilder: (context) => [
                                             const PopupMenuItem(
                                               value: 'edit',
@@ -348,8 +386,10 @@ class _MyPostsPageState extends State<MyPostsPage> {
                                             ),
                                           ],
                                           onSelected: (value) {
-                                            ScaffoldMessenger.of(context).showSnackBar(
-                                              SnackBar(content: Text('$value post')),
+                                            ScaffoldMessenger.of(context)
+                                                .showSnackBar(
+                                              SnackBar(
+                                                  content: Text('$value post')),
                                             );
                                           },
                                         ),
@@ -421,16 +461,16 @@ class _CommentsDrawerState extends State<CommentsDrawer> {
 
   void _addComment() async {
     if (_commentController.text.trim().isEmpty) return;
-    
+
     final phoneNumber = await AuthService.getPhone();
     if (phoneNumber == null) return;
-    
+
     final success = await ApiService.addComment(
       widget.postId,
       phoneNumber,
       _commentController.text.trim(),
     );
-    
+
     if (success) {
       _commentController.clear();
       widget.onCommentAdded();
@@ -492,18 +532,23 @@ class _CommentsDrawerState extends State<CommentsDrawer> {
                                   radius: 16,
                                   backgroundColor: const Color(0xFFDC143C),
                                   child: Text(
-                                    (comment['authorName'] ?? 'U')[0].toUpperCase(),
-                                    style: const TextStyle(color: Colors.white, fontSize: 12),
+                                    (comment['authorName'] ?? 'U')[0]
+                                        .toUpperCase(),
+                                    style: const TextStyle(
+                                        color: Colors.white, fontSize: 12),
                                   ),
                                 ),
                                 const SizedBox(width: 8),
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         comment['authorName'] ?? 'Unknown User',
-                                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                                        style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 14),
                                       ),
                                       const SizedBox(height: 2),
                                       Text(
@@ -513,7 +558,9 @@ class _CommentsDrawerState extends State<CommentsDrawer> {
                                       const SizedBox(height: 4),
                                       Text(
                                         comment['createdAt'] ?? '',
-                                        style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                                        style: TextStyle(
+                                            color: Colors.grey[600],
+                                            fontSize: 12),
                                       ),
                                     ],
                                   ),
@@ -540,7 +587,8 @@ class _CommentsDrawerState extends State<CommentsDrawer> {
                         borderRadius: BorderRadius.circular(20),
                         borderSide: BorderSide(color: Colors.grey[300]!),
                       ),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 8),
                     ),
                   ),
                 ),

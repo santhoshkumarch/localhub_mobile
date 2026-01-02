@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../pages/profile_page.dart';
+import '../pages/settings_page.dart';
+import '../pages/help_page.dart';
 import '../pages/login_page.dart';
 import '../services/auth_service.dart';
 
@@ -70,12 +72,24 @@ class SideMenu extends StatelessWidget {
           ListTile(
             leading: const Icon(Icons.settings),
             title: const Text('Settings'),
-            onTap: () => Navigator.pop(context),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const SettingsPage()),
+              );
+            },
           ),
           ListTile(
             leading: const Icon(Icons.help),
             title: const Text('Help'),
-            onTap: () => Navigator.pop(context),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const HelpPage()),
+              );
+            },
           ),
           const Divider(),
           ListTile(

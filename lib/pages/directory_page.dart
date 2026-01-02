@@ -66,38 +66,38 @@ class _DirectoryPageState extends State<DirectoryPage> {
             onPressed: () => Scaffold.of(context).openDrawer(),
           ),
         ),
-        actions: [
-          IconButton(
-            icon: Stack(
-              children: [
-                const Icon(Icons.notifications),
-                Positioned(
-                  right: 0,
-                  top: 0,
-                  child: Container(
-                    padding: const EdgeInsets.all(2),
-                    decoration: const BoxDecoration(
-                      color: Colors.red,
-                      shape: BoxShape.circle,
-                    ),
-                    constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
-                    child: const Text(
-                      '1',
-                      style: TextStyle(color: Colors.white, fontSize: 10),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const NotificationsPage()),
-              );
-            },
-          ),
-        ],
+        // actions: [
+        //   IconButton(
+        //     icon: Stack(
+        //       children: [
+        //         const Icon(Icons.notifications),
+        //         Positioned(
+        //           right: 0,
+        //           top: 0,
+        //           child: Container(
+        //             padding: const EdgeInsets.all(2),
+        //             decoration: const BoxDecoration(
+        //               color: Colors.red,
+        //               shape: BoxShape.circle,
+        //             ),
+        //             constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+        //             child: const Text(
+        //               '1',
+        //               style: TextStyle(color: Colors.white, fontSize: 10),
+        //               textAlign: TextAlign.center,
+        //             ),
+        //           ),
+        //         ),
+        //       ],
+        //     ),
+        //     onPressed: () {
+        //       Navigator.push(
+        //         context,
+        //         MaterialPageRoute(builder: (_) => const NotificationsPage()),
+        //       );
+        //     },
+        //   ),
+        // ],
       ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())

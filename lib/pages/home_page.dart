@@ -46,9 +46,9 @@ class _HomePageState extends State<HomePage> {
   void _loadUserName() async {
     final phoneNumber = await AuthService.getPhone();
     final email = await AuthService.getEmail();
-    
+
     String? name;
-    
+
     if (phoneNumber != null) {
       final profile = await ApiService.getProfile(phoneNumber);
       name = profile?['name'];
@@ -56,7 +56,7 @@ class _HomePageState extends State<HomePage> {
       final profile = await ApiService.getProfileByEmail(email);
       name = profile?['name'];
     }
-    
+
     if (mounted) {
       setState(() {
         userName = name ?? 'User';
@@ -81,7 +81,7 @@ class _HomePageState extends State<HomePage> {
       if (!mounted) return;
 
       debugPrint('API Response: Fetched ${fetchedMenus.length} menus');
-      
+
       setState(() {
         menus = fetchedMenus;
         isLoading = false;
@@ -98,8 +98,6 @@ class _HomePageState extends State<HomePage> {
       });
     }
   }
-
-
 
   Future<void> _refreshMenus() async {
     await _loadMenus();
@@ -125,7 +123,6 @@ class _HomePageState extends State<HomePage> {
             ],
           ),
         ),
-
       ),
     );
   }
@@ -168,21 +165,21 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
           const Spacer(),
-          IconButton(
-            onPressed: () {
-              // TODO: Implement QR scanner
-              debugPrint('QR scanner tapped');
-            },
-            icon: const Icon(Icons.qr_code_scanner,
-                color: Colors.white, size: 24),
-            tooltip: 'Scan QR code',
-          ),
+          // IconButton(
+          //   onPressed: () {
+          //     // TODO: Implement QR scanner
+          //     debugPrint('QR scanner tapped');
+          //   },
+          //   icon: const Icon(Icons.qr_code_scanner,
+          //       color: Colors.white, size: 24),
+          //   tooltip: 'Scan QR code',
+          // ),
           IconButton(
             onPressed: _refreshMenus,
             icon: const Icon(Icons.refresh, color: Colors.white, size: 24),
             tooltip: 'Refresh',
           ),
-          _buildNotificationIcon(),
+          // _buildNotificationIcon(),
         ],
       ),
     );

@@ -38,9 +38,11 @@ class _FeedsPageState extends State<FeedsPage> {
     } else {
       _filteredPosts = _posts.where((post) {
         final menuName = post['menuName']?.toString().toLowerCase() ?? '';
-        final assignedLabel = post['assignedLabel']?.toString().toLowerCase() ?? '';
+        final assignedLabel =
+            post['assignedLabel']?.toString().toLowerCase() ?? '';
         final filterLower = widget.filterCategory!.toLowerCase();
-        return menuName.contains(filterLower) || assignedLabel.contains(filterLower);
+        return menuName.contains(filterLower) ||
+            assignedLabel.contains(filterLower);
       }).toList();
     }
   }
@@ -48,17 +50,18 @@ class _FeedsPageState extends State<FeedsPage> {
   void _loadPosts() async {
     if (!mounted) return;
     setState(() => _loading = true);
-    
+
     final phoneNumber = await AuthService.getPhone();
     final posts = await ApiService.getAllPosts();
-    
+
     // Load liked posts from local storage
     if (phoneNumber != null) {
       final prefs = await SharedPreferences.getInstance();
-      final likedPostsJson = prefs.getStringList('liked_posts_$phoneNumber') ?? [];
+      final likedPostsJson =
+          prefs.getStringList('liked_posts_$phoneNumber') ?? [];
       _likedPosts = Set<int>.from(likedPostsJson.map((id) => int.parse(id)));
     }
-    
+
     if (mounted) {
       setState(() {
         _posts = posts.map((post) {
@@ -78,19 +81,21 @@ class _FeedsPageState extends State<FeedsPage> {
   void _toggleLike(int postId, int index) async {
     final phoneNumber = await AuthService.getPhone();
     if (phoneNumber == null) return;
-    
+
     final success = await ApiService.toggleLike(postId, phoneNumber);
     if (success) {
       setState(() {
         if (_likedPosts.contains(postId)) {
           _likedPosts.remove(postId);
-          _filteredPosts[index]['likes'] = (_filteredPosts[index]['likes'] ?? 0) - 1;
+          _filteredPosts[index]['likes'] =
+              (_filteredPosts[index]['likes'] ?? 0) - 1;
         } else {
           _likedPosts.add(postId);
-          _filteredPosts[index]['likes'] = (_filteredPosts[index]['likes'] ?? 0) + 1;
+          _filteredPosts[index]['likes'] =
+              (_filteredPosts[index]['likes'] ?? 0) + 1;
         }
       });
-      
+
       // Save to local storage
       final prefs = await SharedPreferences.getInstance();
       final likedPostsList = _likedPosts.map((id) => id.toString()).toList();
@@ -107,7 +112,8 @@ class _FeedsPageState extends State<FeedsPage> {
         postId: postId,
         onCommentAdded: () {
           setState(() {
-            _filteredPosts[index]['comments'] = (_filteredPosts[index]['comments'] ?? 0) + 1;
+            _filteredPosts[index]['comments'] =
+                (_filteredPosts[index]['comments'] ?? 0) + 1;
           });
         },
       ),
@@ -119,7 +125,8 @@ class _FeedsPageState extends State<FeedsPage> {
       'id': 1,
       'userName': 'Ravi Kumar',
       'userType': 'Restaurant Owner',
-      'content': 'Grand opening of our new branch in T. Nagar! Special 20% discount for the first 100 customers 🎉',
+      'content':
+          'Grand opening of our new branch in T. Nagar! Special 20% discount for the first 100 customers 🎉',
       'timestamp': '2 hours ago',
       'likes': 45,
       'comments': 12,
@@ -129,7 +136,8 @@ class _FeedsPageState extends State<FeedsPage> {
       'id': 2,
       'userName': 'Priya Textiles',
       'userType': 'Business',
-      'content': 'New collection of silk sarees arrived! Perfect for the upcoming festival season. Visit our showroom in Coimbatore.',
+      'content':
+          'New collection of silk sarees arrived! Perfect for the upcoming festival season. Visit our showroom in Coimbatore.',
       'timestamp': '4 hours ago',
       'likes': 28,
       'comments': 8,
@@ -139,7 +147,8 @@ class _FeedsPageState extends State<FeedsPage> {
       'id': 3,
       'userName': 'Tech Solutions',
       'userType': 'IT Services',
-      'content': 'Looking for talented developers to join our team. Great opportunity for freshers and experienced professionals.',
+      'content':
+          'Looking for talented developers to join our team. Great opportunity for freshers and experienced professionals.',
       'timestamp': '6 hours ago',
       'likes': 67,
       'comments': 23,
@@ -149,7 +158,8 @@ class _FeedsPageState extends State<FeedsPage> {
       'id': 4,
       'userName': 'Green Grocers',
       'userType': 'Grocery',
-      'content': 'Fresh organic vegetables delivered to your doorstep. Free delivery for orders above ₹500 in Madurai area.',
+      'content':
+          'Fresh organic vegetables delivered to your doorstep. Free delivery for orders above ₹500 in Madurai area.',
       'timestamp': '8 hours ago',
       'likes': 34,
       'comments': 15,
@@ -159,7 +169,8 @@ class _FeedsPageState extends State<FeedsPage> {
       'id': 5,
       'userName': 'Auto Care Center',
       'userType': 'Automotive',
-      'content': 'Monsoon car service package now available! Complete check-up and maintenance at discounted rates.',
+      'content':
+          'Monsoon car service package now available! Complete check-up and maintenance at discounted rates.',
       'timestamp': '1 day ago',
       'likes': 19,
       'comments': 6,
@@ -175,17 +186,15 @@ class _FeedsPageState extends State<FeedsPage> {
           const Icon(Icons.post_add, size: 64, color: Colors.grey),
           const SizedBox(height: 16),
           Text(
-            widget.filterCategory != null 
-              ? 'No ${widget.filterCategory!.toLowerCase()} posts found'
-              : 'No posts yet', 
-            style: const TextStyle(fontSize: 18, color: Colors.grey)
-          ),
+              widget.filterCategory != null
+                  ? 'No ${widget.filterCategory!.toLowerCase()} posts found'
+                  : 'No posts yet',
+              style: const TextStyle(fontSize: 18, color: Colors.grey)),
           Text(
-            widget.filterCategory != null
-              ? 'Try a different category or create a new post'
-              : 'Be the first to create a post!', 
-            style: const TextStyle(color: Colors.grey)
-          ),
+              widget.filterCategory != null
+                  ? 'Try a different category or create a new post'
+                  : 'Be the first to create a post!',
+              style: const TextStyle(color: Colors.grey)),
         ],
       ),
     );
@@ -196,7 +205,7 @@ class _FeedsPageState extends State<FeedsPage> {
       final dateTime = DateTime.parse(timestamp);
       final now = DateTime.now();
       final difference = now.difference(dateTime);
-      
+
       if (difference.inMinutes < 60) {
         return '${difference.inMinutes}m ago';
       } else if (difference.inHours < 24) {
@@ -214,7 +223,9 @@ class _FeedsPageState extends State<FeedsPage> {
     return Scaffold(
       drawer: const SideMenu(),
       appBar: AppBar(
-        title: Text(widget.filterCategory != null ? '${widget.filterCategory} Posts' : 'Feeds'),
+        title: Text(widget.filterCategory != null
+            ? '${widget.filterCategory} Posts'
+            : 'Feeds'),
         backgroundColor: const Color(0xFFDC143C),
         foregroundColor: Colors.white,
         leading: Builder(
@@ -223,38 +234,38 @@ class _FeedsPageState extends State<FeedsPage> {
             onPressed: () => Scaffold.of(context).openDrawer(),
           ),
         ),
-        actions: [
-          IconButton(
-            icon: Stack(
-              children: [
-                const Icon(Icons.notifications),
-                Positioned(
-                  right: 0,
-                  top: 0,
-                  child: Container(
-                    padding: const EdgeInsets.all(2),
-                    decoration: const BoxDecoration(
-                      color: Colors.red,
-                      shape: BoxShape.circle,
-                    ),
-                    constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
-                    child: const Text(
-                      '3',
-                      style: TextStyle(color: Colors.white, fontSize: 10),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const NotificationsPage()),
-              );
-            },
-          ),
-        ],
+        // actions: [
+        //   IconButton(
+        //     icon: Stack(
+        //       children: [
+        //         const Icon(Icons.notifications),
+        //         Positioned(
+        //           right: 0,
+        //           top: 0,
+        //           child: Container(
+        //             padding: const EdgeInsets.all(2),
+        //             decoration: const BoxDecoration(
+        //               color: Colors.red,
+        //               shape: BoxShape.circle,
+        //             ),
+        //             constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+        //             child: const Text(
+        //               '3',
+        //               style: TextStyle(color: Colors.white, fontSize: 10),
+        //               textAlign: TextAlign.center,
+        //             ),
+        //           ),
+        //         ),
+        //       ],
+        //     ),
+        //     onPressed: () {
+        //       Navigator.push(
+        //         context,
+        //         MaterialPageRoute(builder: (_) => const NotificationsPage()),
+        //       );
+        //     },
+        //   ),
+        // ],
       ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
@@ -280,17 +291,21 @@ class _FeedsPageState extends State<FeedsPage> {
                                     CircleAvatar(
                                       backgroundColor: const Color(0xFFDC143C),
                                       child: Text(
-                                        (post['authorName'] ?? 'U')[0].toUpperCase(),
-                                        style: const TextStyle(color: Colors.white),
+                                        (post['authorName'] ?? 'U')[0]
+                                            .toUpperCase(),
+                                        style: const TextStyle(
+                                            color: Colors.white),
                                       ),
                                     ),
                                     const SizedBox(width: 12),
                                     Expanded(
                                       child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
                                         children: [
                                           Text(
-                                            post['authorName'] ?? 'Unknown User',
+                                            post['authorName'] ??
+                                                'Unknown User',
                                             style: const TextStyle(
                                               fontWeight: FontWeight.bold,
                                               fontSize: 16,
@@ -328,30 +343,38 @@ class _FeedsPageState extends State<FeedsPage> {
                                   post['content'] ?? '',
                                   style: const TextStyle(fontSize: 16),
                                 ),
-                                if (post['mediaUrls'] != null && (post['mediaUrls'] as List).isNotEmpty)
+                                if (post['mediaUrls'] != null &&
+                                    (post['mediaUrls'] as List).isNotEmpty)
                                   const SizedBox(height: 12),
-                                if (post['mediaUrls'] != null && (post['mediaUrls'] as List).isNotEmpty)
+                                if (post['mediaUrls'] != null &&
+                                    (post['mediaUrls'] as List).isNotEmpty)
                                   SizedBox(
                                     height: 200,
                                     child: ListView.builder(
                                       scrollDirection: Axis.horizontal,
-                                      itemCount: (post['mediaUrls'] as List).length,
+                                      itemCount:
+                                          (post['mediaUrls'] as List).length,
                                       itemBuilder: (context, mediaIndex) {
                                         return Container(
-                                          margin: const EdgeInsets.only(right: 8),
+                                          margin:
+                                              const EdgeInsets.only(right: 8),
                                           child: ClipRRect(
-                                            borderRadius: BorderRadius.circular(8),
+                                            borderRadius:
+                                                BorderRadius.circular(8),
                                             child: Image.network(
-                                              (post['mediaUrls'] as List)[mediaIndex],
+                                              (post['mediaUrls']
+                                                  as List)[mediaIndex],
                                               width: 200,
                                               height: 200,
                                               fit: BoxFit.cover,
-                                              errorBuilder: (context, error, stackTrace) {
+                                              errorBuilder:
+                                                  (context, error, stackTrace) {
                                                 return Container(
                                                   width: 200,
                                                   height: 200,
                                                   color: Colors.grey[300],
-                                                  child: const Icon(Icons.image, size: 50),
+                                                  child: const Icon(Icons.image,
+                                                      size: 50),
                                                 );
                                               },
                                             ),
@@ -366,9 +389,11 @@ class _FeedsPageState extends State<FeedsPage> {
                                   runSpacing: 4,
                                   children: [
                                     Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 8, vertical: 4),
                                       decoration: BoxDecoration(
-                                        color: const Color(0xFFDC143C).withOpacity(0.1),
+                                        color: const Color(0xFFDC143C)
+                                            .withOpacity(0.1),
                                         borderRadius: BorderRadius.circular(12),
                                       ),
                                       child: Text(
@@ -382,10 +407,13 @@ class _FeedsPageState extends State<FeedsPage> {
                                     ),
                                     if (post['assignedLabel'] != null)
                                       Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 8, vertical: 4),
                                         decoration: BoxDecoration(
-                                          color: const Color(0xFFDC143C).withOpacity(0.1),
-                                          borderRadius: BorderRadius.circular(12),
+                                          color: const Color(0xFFDC143C)
+                                              .withOpacity(0.1),
+                                          borderRadius:
+                                              BorderRadius.circular(12),
                                         ),
                                         child: Row(
                                           mainAxisSize: MainAxisSize.min,
@@ -409,10 +437,12 @@ class _FeedsPageState extends State<FeedsPage> {
                                       ),
                                     if (post['adminRemarks'] != null)
                                       Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 8, vertical: 4),
                                         decoration: BoxDecoration(
                                           color: Colors.orange.withOpacity(0.1),
-                                          borderRadius: BorderRadius.circular(12),
+                                          borderRadius:
+                                              BorderRadius.circular(12),
                                         ),
                                         child: Text(
                                           post['adminRemarks'],
@@ -429,14 +459,26 @@ class _FeedsPageState extends State<FeedsPage> {
                                 // Stats row
                                 Row(
                                   children: [
-                                    const Icon(Icons.visibility, size: 16, color: Colors.grey),
-                                    Text(' ${post['views'] ?? 12} views', style: TextStyle(color: Colors.grey[600], fontSize: 12)),
+                                    const Icon(Icons.visibility,
+                                        size: 16, color: Colors.grey),
+                                    Text(' ${post['views'] ?? 12} views',
+                                        style: TextStyle(
+                                            color: Colors.grey[600],
+                                            fontSize: 12)),
                                     const SizedBox(width: 16),
-                                    const Icon(Icons.favorite, size: 16, color: Colors.red),
-                                    Text(' ${post['likes'] ?? 0}', style: TextStyle(color: Colors.grey[600], fontSize: 12)),
+                                    const Icon(Icons.favorite,
+                                        size: 16, color: Colors.red),
+                                    Text(' ${post['likes'] ?? 0}',
+                                        style: TextStyle(
+                                            color: Colors.grey[600],
+                                            fontSize: 12)),
                                     const SizedBox(width: 16),
-                                    const Icon(Icons.comment, size: 16, color: Colors.blue),
-                                    Text(' ${post['comments'] ?? 0}', style: TextStyle(color: Colors.grey[600], fontSize: 12)),
+                                    const Icon(Icons.comment,
+                                        size: 16, color: Colors.blue),
+                                    Text(' ${post['comments'] ?? 0}',
+                                        style: TextStyle(
+                                            color: Colors.grey[600],
+                                            fontSize: 12)),
                                   ],
                                 ),
                                 const SizedBox(height: 8),
@@ -449,20 +491,30 @@ class _FeedsPageState extends State<FeedsPage> {
                                       child: InkWell(
                                         onTap: () => _toggleLike(postId, index),
                                         child: Container(
-                                          padding: const EdgeInsets.symmetric(vertical: 8),
+                                          padding: const EdgeInsets.symmetric(
+                                              vertical: 8),
                                           child: Row(
-                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
                                             children: [
                                               Icon(
-                                                _likedPosts.contains(postId) ? Icons.favorite : Icons.favorite_border,
+                                                _likedPosts.contains(postId)
+                                                    ? Icons.favorite
+                                                    : Icons.favorite_border,
                                                 size: 20,
-                                                color: _likedPosts.contains(postId) ? Colors.red : Colors.grey,
+                                                color:
+                                                    _likedPosts.contains(postId)
+                                                        ? Colors.red
+                                                        : Colors.grey,
                                               ),
                                               const SizedBox(width: 4),
                                               Text(
                                                 'Like',
                                                 style: TextStyle(
-                                                  color: _likedPosts.contains(postId) ? Colors.red : Colors.grey,
+                                                  color: _likedPosts
+                                                          .contains(postId)
+                                                      ? Colors.red
+                                                      : Colors.grey,
                                                   fontWeight: FontWeight.w500,
                                                 ),
                                               ),
@@ -471,44 +523,65 @@ class _FeedsPageState extends State<FeedsPage> {
                                         ),
                                       ),
                                     ),
-                                    Container(width: 1, height: 30, color: Colors.grey[300]),
+                                    Container(
+                                        width: 1,
+                                        height: 30,
+                                        color: Colors.grey[300]),
                                     Expanded(
                                       child: InkWell(
-                                        onTap: () => _showCommentsDrawer(postId, index),
+                                        onTap: () =>
+                                            _showCommentsDrawer(postId, index),
                                         child: Container(
-                                          padding: const EdgeInsets.symmetric(vertical: 8),
+                                          padding: const EdgeInsets.symmetric(
+                                              vertical: 8),
                                           child: const Row(
-                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
                                             children: [
-                                              Icon(Icons.comment_outlined, size: 20, color: Colors.grey),
+                                              Icon(Icons.comment_outlined,
+                                                  size: 20, color: Colors.grey),
                                               SizedBox(width: 4),
                                               Text(
                                                 'Comment',
-                                                style: TextStyle(color: Colors.grey, fontWeight: FontWeight.w500),
+                                                style: TextStyle(
+                                                    color: Colors.grey,
+                                                    fontWeight:
+                                                        FontWeight.w500),
                                               ),
                                             ],
                                           ),
                                         ),
                                       ),
                                     ),
-                                    Container(width: 1, height: 30, color: Colors.grey[300]),
+                                    Container(
+                                        width: 1,
+                                        height: 30,
+                                        color: Colors.grey[300]),
                                     Expanded(
                                       child: InkWell(
                                         onTap: () {
-                                          ScaffoldMessenger.of(context).showSnackBar(
-                                            const SnackBar(content: Text('Post shared!')),
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(
+                                            const SnackBar(
+                                                content: Text('Post shared!')),
                                           );
                                         },
                                         child: Container(
-                                          padding: const EdgeInsets.symmetric(vertical: 8),
+                                          padding: const EdgeInsets.symmetric(
+                                              vertical: 8),
                                           child: const Row(
-                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
                                             children: [
-                                              Icon(Icons.share_outlined, size: 20, color: Colors.grey),
+                                              Icon(Icons.share_outlined,
+                                                  size: 20, color: Colors.grey),
                                               SizedBox(width: 4),
                                               Text(
                                                 'Share',
-                                                style: TextStyle(color: Colors.grey, fontWeight: FontWeight.w500),
+                                                style: TextStyle(
+                                                    color: Colors.grey,
+                                                    fontWeight:
+                                                        FontWeight.w500),
                                               ),
                                             ],
                                           ),
@@ -581,16 +654,16 @@ class _CommentsDrawerState extends State<CommentsDrawer> {
 
   void _addComment() async {
     if (_commentController.text.trim().isEmpty) return;
-    
+
     final phoneNumber = await AuthService.getPhone();
     if (phoneNumber == null) return;
-    
+
     final success = await ApiService.addComment(
       widget.postId,
       phoneNumber,
       _commentController.text.trim(),
     );
-    
+
     if (success) {
       _commentController.clear();
       widget.onCommentAdded();
@@ -652,18 +725,23 @@ class _CommentsDrawerState extends State<CommentsDrawer> {
                                   radius: 16,
                                   backgroundColor: const Color(0xFFDC143C),
                                   child: Text(
-                                    (comment['authorName'] ?? 'U')[0].toUpperCase(),
-                                    style: const TextStyle(color: Colors.white, fontSize: 12),
+                                    (comment['authorName'] ?? 'U')[0]
+                                        .toUpperCase(),
+                                    style: const TextStyle(
+                                        color: Colors.white, fontSize: 12),
                                   ),
                                 ),
                                 const SizedBox(width: 8),
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         comment['authorName'] ?? 'Unknown User',
-                                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                                        style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 14),
                                       ),
                                       const SizedBox(height: 2),
                                       Text(
@@ -673,7 +751,9 @@ class _CommentsDrawerState extends State<CommentsDrawer> {
                                       const SizedBox(height: 4),
                                       Text(
                                         comment['createdAt'] ?? '',
-                                        style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                                        style: TextStyle(
+                                            color: Colors.grey[600],
+                                            fontSize: 12),
                                       ),
                                     ],
                                   ),
@@ -700,7 +780,8 @@ class _CommentsDrawerState extends State<CommentsDrawer> {
                         borderRadius: BorderRadius.circular(20),
                         borderSide: BorderSide(color: Colors.grey[300]!),
                       ),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 8),
                     ),
                   ),
                 ),
